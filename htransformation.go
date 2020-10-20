@@ -1,10 +1,11 @@
 package htransformation
 
 import (
-	"fmt"
 	"context"
-	"net/http"
+	"fmt"
 	"log"
+	"net/http"
+	"regexp"
 )
 
 type transformations struct {
@@ -26,30 +27,35 @@ func CreateConfig() *Config {
 
 // UIDDemo holds the necessary components of a Traefik plugin
 type UIDDemo struct {
-	next		http.Handler
+	next            http.Handler
 	transformations []transformations
-	name		string
+	name            string
 }
 
 // New instantiates and returns the required components used to handle a HTTP request
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	return &UIDDemo{
-		transformations:	config.Transformations,
-		next:		next,
-		name:		name,
+		transformations: config.Transformations,
+		next:            next,
+		name:            name,
 	}, nil
 }
 
 func (u *UIDDemo) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	uid := "toto"
-	http.Error(rw, "toto", http.StatusInternalServerError)
-	// header injection to backend service
-	// req.Header.Set(u.headerName, uid)
-	// header injection to client response
-	// rw.Header().Add(u.headerName, uid)
-	for i, t := range u.transformations {
-		rw.Header().Add(t.With, uid)
+	for headerName, headerValues := range r.Header {
+		for _, trans := range u.transformations {
+			matched, err := regexp.Match(trans.Rename, []byte(headerName))
+			if err != nil {
+				http.Error(rw, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			if matched {
+				rw.Header().Del(headerName)
+				for _, val := range headerValues {
+					rw.Header().Add(t.With, val)
+				}
+			}
+		}
 	}
-
 	u.next.ServeHTTP(rw, req)
 }
