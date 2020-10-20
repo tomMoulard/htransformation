@@ -49,7 +49,12 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	for _, rule := range u.rules {
 		switch rule.Type {
-		case "rename":
+		case "Rename":
+			if rule.Header == "" || rule.Value == "" {
+				rw.Write([]byte("not done Rename: " + rule.Name + "\n"))
+				continue
+				// TODO: Add logs
+			}
 			for headerName, headerValues := range req.Header {
 				matched, err := regexp.Match(rule.Header, []byte(headerName))
 				if err != nil {
@@ -63,14 +68,29 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 					}
 				}
 			}
-		case "set":
+		case "Set":
+			if rule.Header == "" || rule.Value == "" {
+				rw.Write([]byte("not done Set : " + rule.Name + "\n"))
+				continue
+				// TODO: Add logs
+			}
 			req.Header.Set(rule.Header, rule.Value)
-		case "del":
+		case "Del":
+			if rule.Header == "" {
+				rw.Write([]byte("not done Del : " + rule.Name + "\n"))
+				continue
+				// TODO: Add logs
+			}
 			req.Header.Del(rule.Header)
 		//JOIN application
 		// If header found, then joining the value
 		// If no header found, then skiping
-		case "join":
+		case "Join":
+			if rule.Header == "" || rule.Value == "" || rule.Sep == "" {
+				rw.Write([]byte("not done Join : " + rule.Name + "\n"))
+				continue
+				// TODO: Add logs
+			}
 			if val, ok := req.Header[rule.Header]; ok {
 				req.Header.Del(rule.Header)
 				req.Header.Add(rule.Header, val[0]+rule.Sep+rule.Value)

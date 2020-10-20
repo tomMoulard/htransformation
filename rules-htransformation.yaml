@@ -25,12 +25,12 @@ http:
               Name: 'Transform1'
               Header: 'X-Forwarded-Port'
               Value: 'foo'
-              Type: 'rename'
+              Type: 'Rename'
             - Rule:
               Name: 'Transform2'
               Header: 'X-Forwarded-Proto'
               Value: 'bar'
-              Type: 'rename'
+              Type: 'Rename'
             - Rule:
               Name: 'Set1'
               Header: 'foo'
@@ -48,4 +48,4 @@ http:
               Values:
                 - 'join'
                 - 'toto'
-              Type: 'join'
+              Type: 'Join'
