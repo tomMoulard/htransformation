@@ -39,7 +39,7 @@ type HeadersTransformation struct {
 // New instantiates and returns the required components used to handle a HTTP request
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	for _, rule := range config.Rules {
-		if rule.Header == "" {
+		if rule.Header == "" || rule.Type == ""{
 			return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
 				rule.Name)
 		}
