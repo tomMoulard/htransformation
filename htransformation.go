@@ -12,11 +12,13 @@ type Transform struct {
 	With   string `yaml:"With"`
 	Type   string `yaml:"Type"`
 }
+
 type Set struct {
 	Name   string `yaml:"Name"`
 	Header string `yaml:"Header"`
 	Value  string `yaml:"Value"`
 }
+
 type Del struct {
 	Name   string `yaml:"Name"`
 	Header string `yaml:"Header"`

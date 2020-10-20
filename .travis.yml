@@ -33,4 +33,4 @@ install:
   - go mod vendor
   # - git diff --exit-code ./vendor/
 
-script: make lint test yaegi_test
+script: make lint test
