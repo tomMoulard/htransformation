@@ -2,8 +2,6 @@ package htransformation
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"net/http"
 	"regexp"
 )
@@ -15,14 +13,6 @@ type Transform struct {
 	Type   string `yaml:"Type"`
 }
 
-//type Transformations []struct {
-//	Transform struct {
-//		Name   string `yaml:"Name"`
-//		Rename string `yaml:"Rename"`
-//		With   string `yaml:"With"`
-//		Type   string `yaml:"Type"`
-//	} `yaml:"Transform,omitempty"`
-//}
 
 // Config holds configuration to be passed to the plugin
 type Config struct {
