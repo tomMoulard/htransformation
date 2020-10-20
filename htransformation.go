@@ -43,23 +43,9 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 			return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
 				rule.Name)
 		}
-		switch rule.Type {
-		case "Rename":
-			if rule.Value == "" {
-				return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
-					rule.Name)
-			}
-		case "Set":
-			if rule.Value == "" {
-				return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
-					rule.Name)
-			}
-		case "Join":
-			if rule.Value == "" || rule.Sep == "" {
-				return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
-					rule.Name)
-			}
-		default:
+		if rule.Type == "Join" && (rule.Value == "" || rule.Sep == "") {
+			return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
+				rule.Name)
 		}
 	}
 	return &HeadersTransformation{
