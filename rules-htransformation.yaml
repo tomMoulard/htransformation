@@ -22,26 +22,21 @@ http:
         dev:
           Rules:
             - Rule:
-              Name: 'Transform1'
-              Header: 'X-Forwarded-Port'
-              Value: 'foo'
+              Name: 'Header transformation'
+              Header: 'X-Traefik-*'
+              Value: 'X-custom'
               Type: 'Rename'
             - Rule:
-              Name: 'Transform2'
-              Header: 'X-Forwarded-Proto'
-              Value: 'bar'
-              Type: 'Rename'
-            - Rule:
-              Name: 'Set1'
-              Header: 'foo'
-              Value: 'bar'
+              Name: 'Header addition'
+              Header: 'X-Custom'
+              Value: 'True'
               Type: 'Set'
             - Rule:
-              Name: 'Del1'
-              Header: 'tutu'
+              Name: 'Header deletion'
+              Header: 'X-forward'
               Type: 'Del'
             - Rule:
-              Name: 'Join1'
+              Name: 'Header join'
               Header: 'Foo'
               Sep: ','
               Value: 'join'
