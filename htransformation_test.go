@@ -18,17 +18,18 @@ func assertHeader(t *testing.T, req *http.Request, key, expected string) {
 	}
 }
 
-func TestHeaderTransformation(t *testing.T) {
+func TestHeaderRules(t *testing.T) {
 	tests := []struct {
-		name            string
-		transformations plug.Transform
-		headers         map[string]string
-		want            map[string]string
+		name    string
+		rule    plug.Rule
+		headers map[string]string
+		want    map[string]string
 	}{
 		{
-			name: "no transformation",
-			transformations: plug.Transform{
-				Rename: "not-existing",
+			name: "[Rename] no transformation",
+			rule: plug.Rule{
+				Type:   "Rename",
+				Header: "not-existing",
 			},
 			headers: map[string]string{
 				"Foo": "Bar",
@@ -38,40 +39,26 @@ func TestHeaderTransformation(t *testing.T) {
 			},
 		},
 		{
-			name: "one transformation",
-			transformations: plug.Transform{
-				Rename: "Test",
-				With:   "Testing",
+			name: "[Rename] one transformation",
+			rule: plug.Rule{
+				Type:   "Rename",
+				Header: "Test",
+				Value:  "X-Testing",
 			},
 			headers: map[string]string{
 				"Foo":  "Bar",
 				"Test": "Success",
 			},
 			want: map[string]string{
-				"Foo":     "Bar",
-				"Testing": "Success",
+				"Foo":       "Bar",
+				"X-Testing": "Success",
 			},
 		},
 		{
-			name: "more transformation",
-			transformations: plug.Transform{
-				Rename: "Test*",
-				With:   "Testing",
-			},
-			headers: map[string]string{
-				"Foo":   "Bar",
-				"Test1": "Success",
-				"Test2": "Pass",
-			},
-			want: map[string]string{
-				"Foo":     "Bar",
-				"Testing": "Pass",
-			},
-		},
-		{
-			name: "DEL",
-			transformations: plug.Transform{
-				Rename: "Test",
+			name: "[Rename] Deletion",
+			rule: plug.Rule{
+				Type:   "Rename",
+				Header: "Test",
 			},
 			headers: map[string]string{
 				"Foo":  "Bar",
@@ -82,50 +69,10 @@ func TestHeaderTransformation(t *testing.T) {
 				"Test": "",
 			},
 		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfg := plug.CreateConfig()
-			cfg.Transformations = []plug.Transform{tt.transformations}
-
-			ctx := context.Background()
-			next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-
-			handler, err := plug.New(ctx, next, cfg, "demo-plugin")
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			recorder := httptest.NewRecorder()
-
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			for hName, hVal := range tt.headers {
-				req.Header.Add(hName, hVal)
-			}
-
-			handler.ServeHTTP(recorder, req)
-
-			for hName, hVal := range tt.want {
-				assertHeader(t, req, hName, hVal)
-			}
-		})
-	}
-}
-
-func TestHeaderSetter(t *testing.T) {
-	tests := []struct {
-		name    string
-		set     plug.Set
-		headers map[string]string
-		want    map[string]string
-	}{
 		{
-			name: "set one simple",
-			set: plug.Set{
+			name: "[Set] Set one simple",
+			rule: plug.Rule{
+				Type:   "Set",
 				Header: "X-Test",
 				Value:  "Tested",
 			},
@@ -138,9 +85,10 @@ func TestHeaderSetter(t *testing.T) {
 			},
 		},
 		{
-			name: "set alread existing simple",
-			set: plug.Set{
-				Header: "x-Test",
+			name: "[Set] Set already existing simple",
+			rule: plug.Rule{
+				Type:   "Set",
+				Header: "X-Test",
 				Value:  "Tested",
 			},
 			headers: map[string]string{
@@ -152,11 +100,55 @@ func TestHeaderSetter(t *testing.T) {
 				"X-Test": "Tested", // Override
 			},
 		},
+		{
+			name: "[Del] Remove not existing header",
+			rule: plug.Rule{
+				Type:   "Del",
+				Header: "X-Test",
+			},
+			headers: map[string]string{
+				"Foo": "Bar",
+			},
+			want: map[string]string{
+				"Foo": "Bar",
+			},
+		},
+		{
+			name: "[Del] Remove one header",
+			rule: plug.Rule{
+				Type:   "Del",
+				Header: "X-Test",
+			},
+			headers: map[string]string{
+				"Foo":    "Bar",
+				"X-Test": "Bar",
+			},
+			want: map[string]string{
+				"Foo": "Bar",
+			},
+		},
+		{
+			name: "[Join] Join two headers",
+			rule: plug.Rule{
+				Type:   "Join",
+				Sep:    ",",
+				Header: "X-Test",
+				Value:  "Tested",
+			},
+			headers: map[string]string{
+				"Foo":    "Bar",
+				"X-Test": "Bar",
+			},
+			want: map[string]string{
+				"Foo":    "Bar",
+				"X-Test": "Bar,Tested",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := plug.CreateConfig()
-			cfg.Setters = []plug.Set{tt.set}
+			cfg.Rules = []plug.Rule{tt.rule}
 
 			ctx := context.Background()
 			next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
@@ -185,6 +177,8 @@ func TestHeaderSetter(t *testing.T) {
 		})
 	}
 }
+
+/*
 
 func TestHeaderDeletion(t *testing.T) {
 	tests := []struct {
@@ -262,3 +256,4 @@ func TestHeaderDeletion(t *testing.T) {
 		})
 	}
 }
+*/
