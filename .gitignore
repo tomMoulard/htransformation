@@ -17,3 +17,6 @@ traefik.yml
 traefik.yaml
 
 plugins-storage
+
+# Vim trash files
+*.swp
