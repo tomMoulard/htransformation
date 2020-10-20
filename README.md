@@ -1,4 +1,11 @@
-# README
+# Header transformation plugin for traefik
+
+[![Build Status](https://travis-ci.com/tomMoulard/traefik-header-transformation.svg?branch=master)](https://travis-ci.com/tomMoulard/traefik-header-transformation)
+
+This plugin allow to change on the fly header's value of a request.
+
+## Dev `traefik.yml` configuration file for traefik
+
 ```yml
 pilot:
   token: [REDACTED]
@@ -21,4 +28,10 @@ api:
 providers:
   file:
     filename: rules-htransformation.yaml
+```
+
+## How to dev
+```bash
+$ docker run -d --network host containous/whoami -port 5000
+# traefik --config-file traefik.yml
 ```
