@@ -1,3 +1,5 @@
+# Template for configuration
+
 http:
   routers:
     my-router:
@@ -21,11 +23,20 @@ http:
           Transformations:
             - Transform:
               Name: 'Transform1'
-              Rename: 'X-Forwarded-For'
-              With: 'tata'
+              Rename: 'X-Forwarded-Port'
+              With: 'foo'
               Type: 'request'
             - Transform:
               Name: 'Transform2'
               Rename: 'X-Forwarded-Proto'
-              With: 'bitmap'
+              With: 'bar'
               Type: 'request'
+          Setters:
+            - Set:
+              Name: 'Set1'
+              Header: 'foo'
+              Value: 'bar'
+          Deletions:
+            - Del:
+              Name: 'Del1'
+              Header: 'foo'
