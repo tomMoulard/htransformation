@@ -2,8 +2,6 @@ package htransformation
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"net/http"
 	"regexp"
 )
@@ -14,25 +12,23 @@ type Transform struct {
 	With   string `yaml:"With"`
 	Type   string `yaml:"Type"`
 }
-
-//type Transformations []struct {
-//	Transform struct {
-//		Name   string `yaml:"Name"`
-//		Rename string `yaml:"Rename"`
-//		With   string `yaml:"With"`
-//		Type   string `yaml:"Type"`
-//	} `yaml:"Transform,omitempty"`
-//}
+type Set struct {
+	Name   string `yaml:"Name"`
+	Header string `yaml:"Header"`
+	Value  string `yaml:"Value"`
+}
 
 // Config holds configuration to be passed to the plugin
 type Config struct {
 	Transformations []Transform
+    Setters []Set
 }
 
 // CreateConfig populates the Config data object
 func CreateConfig() *Config {
 	return &Config{
 		Transformations: []Transform{},
+		Setters: []Set{},
 	}
 }
 
@@ -40,6 +36,7 @@ func CreateConfig() *Config {
 type HeadersTransformation struct {
 	next			http.Handler
 	transformations []Transform
+	setters         []Set
 	name			string
 }
 
@@ -47,11 +44,14 @@ type HeadersTransformation struct {
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	return &HeadersTransformation{
 		transformations: config.Transformations,
+        setters:         config.Setters,
 		next:            next,
 		name:            name,
 	}, nil
 }
 
+// Iterate over every headers to match the ones specified in the config and
+// return nothing if regexp failed.
 func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	for headerName, headerValues := range req.Header {
 		for _, trans := range u.transformations {
@@ -68,5 +68,8 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 			}
 		}
 	}
+    for _, set := range u.setters {
+        req.Header.Set(set.Header, set.Value)
+    }
 	u.next.ServeHTTP(rw, req)
 }
