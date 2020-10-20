@@ -13,4 +13,7 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-traeik.yml
+traefik.yml
+traefik.yaml
+
+plugins-storage

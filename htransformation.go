@@ -8,41 +8,52 @@ import (
 	"regexp"
 )
 
-type transformations struct {
-	Name   string
-	Rename string
-	With   string
-	Type   string
+type Transform struct {
+	Name   string `yaml:"Name"`
+	Rename string `yaml:"Rename"`
+	With   string `yaml:"With"`
+	Type   string `yaml:"Type"`
 }
+
+//type Transformations []struct {
+//	Transform struct {
+//		Name   string `yaml:"Name"`
+//		Rename string `yaml:"Rename"`
+//		With   string `yaml:"With"`
+//		Type   string `yaml:"Type"`
+//	} `yaml:"Transform,omitempty"`
+//}
 
 // Config holds configuration to be passed to the plugin
 type Config struct {
-	Transformations []transformations
+	Transformations []Transform
 }
 
 // CreateConfig populates the Config data object
 func CreateConfig() *Config {
-	return &Config{}
+	return &Config{
+		Transformations: []Transform{},
+	}
 }
 
-// UIDDemo holds the necessary components of a Traefik plugin
-type UIDDemo struct {
-	next            http.Handler
-	transformations []transformations
-	name            string
+// HeadersTransformation holds the necessary components of a Traefik plugin
+type HeadersTransformation struct {
+	next			http.Handler
+	transformations []Transform
+	name			string
 }
 
 // New instantiates and returns the required components used to handle a HTTP request
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
-	return &UIDDemo{
+	return &HeadersTransformation{
 		transformations: config.Transformations,
 		next:            next,
 		name:            name,
 	}, nil
 }
 
-func (u *UIDDemo) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	for headerName, headerValues := range r.Header {
+func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	for headerName, headerValues := range req.Header {
 		for _, trans := range u.transformations {
 			matched, err := regexp.Match(trans.Rename, []byte(headerName))
 			if err != nil {
@@ -50,9 +61,9 @@ func (u *UIDDemo) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 			if matched {
-				rw.Header().Del(headerName)
+				req.Header.Del(headerName)
 				for _, val := range headerValues {
-					rw.Header().Add(t.With, val)
+					req.Header.Set(trans.With, val)
 				}
 			}
 		}

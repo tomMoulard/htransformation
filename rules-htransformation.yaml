@@ -18,13 +18,14 @@ http:
     htransformation:
       plugin:
         dev:
-          transformations:
-              - HeaderTransformRequest:
-                  rename: 'toto'
-                  with: 'tata'
-                  type: 'request'
-              - HeaderTransformResponse:
-                  rename: 'tata'
-                  with: 'toto'
-                  type: 'response'
-
+          Transformations:
+            - Transform:
+              Name: 'Transform1'
+              Rename: 'X-Forwarded-For'
+              With: 'tata'
+              Type: 'request'
+            - Transform:
+              Name: 'Transform2'
+              Rename: 'X-Forwarded-Proto'
+              With: 'bitmap'
+              Type: 'request'
