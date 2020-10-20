@@ -1,0 +1,17 @@
+displayName: Header transformation
+type: middleware
+
+import: github.com/tommoulard/htransformation
+
+summary: 'Transform some headers with some other ones, see https://github.com/traefik/traefik/issues/6047'
+
+testData:
+  transformations:
+    - HeaderTransformRequest:
+        rename: 'toto'
+        with: 'tata'
+        type: 'request'
+    - HeaderTransformResponse:
+        rename: 'tata'
+        with: 'toto'
+        type: 'response'
