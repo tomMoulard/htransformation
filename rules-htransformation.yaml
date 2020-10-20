@@ -36,3 +36,7 @@ http:
               Name: 'Set1'
               Header: 'foo'
               Value: 'bar'
+          Deletions:
+            - Del:
+              Name: 'Del1'
+              Header: 'foo'
