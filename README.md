@@ -1,6 +1,6 @@
 # Header transformation plugin for traefik
 
-[![Build Status](https://travis-ci.com/tomMoulard/traefik-header-transformation.svg?branch=main)](https://travis-ci.com/tomMoulard/traefik-header-transformation)
+[![Build Status](https://travis-ci.com/tomMoulard/htransformation.svg?branch=main)](https://travis-ci.com/tomMoulard/htransformation)
 
 This plugin allow to change on the fly header's value of a request.
 
