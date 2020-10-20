@@ -23,12 +23,19 @@ type Del struct {
 	Name   string `yaml:"Name"`
 	Header string `yaml:"Header"`
 }
+type Join struct {
+	Name   string `yaml:"Name"`
+	Header string `yaml:"Header"`
+	Sep    string `yaml:"Sep"`
+	Value  string `yaml:"Value"`
+}
 
 // Config holds configuration to be passed to the plugin
 type Config struct {
 	Transformations []Transform
 	Setters         []Set
 	Deletions       []Del
+	Joins           []Join
 }
 
 // CreateConfig populates the Config data object
@@ -37,6 +44,7 @@ func CreateConfig() *Config {
 		Transformations: []Transform{},
 		Setters:         []Set{},
 		Deletions:       []Del{},
+		Joins:           []Join{},
 	}
 }
 
@@ -46,6 +54,7 @@ type HeadersTransformation struct {
 	transformations []Transform
 	setters         []Set
 	deletions       []Del
+	joins           []Join
 	name            string
 }
 
@@ -55,6 +64,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 		transformations: config.Transformations,
 		setters:         config.Setters,
 		deletions:       config.Deletions,
+		joins:           config.Joins,
 		next:            next,
 		name:            name,
 	}, nil
@@ -83,6 +93,16 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 	}
 	for _, del := range u.deletions {
 		req.Header.Del(del.Header)
+	}
+
+	//JOIN application
+	// If header found, then joining the value
+	// If no header found, then skiping
+	for _, join := range u.joins {
+		if val, ok := req.Header[join.Header]; ok {
+			req.Header.Del(join.Header)
+			req.Header.Add(join.Header, val[0]+join.Sep+join.Value)
+		}
 	}
 	u.next.ServeHTTP(rw, req)
 }
