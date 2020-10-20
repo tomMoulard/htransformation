@@ -48,7 +48,6 @@ func TestOneHeader(t *testing.T) {
 			transformations: plug.Transform{
 				Rename: "Test",
 				With:   "Testing",
-				Type:   "",
 			},
 			headers: map[string]string{
 				"Foo": "Bar",
@@ -64,7 +63,6 @@ func TestOneHeader(t *testing.T) {
 			transformations: plug.Transform{
 				Rename: "Test*",
 				With:   "Testing",
-				Type:   "",
 			},
 			headers: map[string]string{
 				"Foo": "Bar",
@@ -74,6 +72,19 @@ func TestOneHeader(t *testing.T) {
 			want: map[string]string{
 				"Foo": "Bar",
 				"Testing": "Pass",
+			},
+		},
+		{
+			name: "DEL",
+			transformations: plug.Transform{
+				Rename: "Test",
+			},
+			headers: map[string]string{
+				"Foo": "Bar",
+				"Test": "Success",
+			},
+			want: map[string]string{
+				"Foo": "Bar",
 			},
 		},
 	}
