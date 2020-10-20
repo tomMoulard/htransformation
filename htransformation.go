@@ -2,9 +2,9 @@ package htransformation
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"regexp"
-	"fmt"
 )
 
 // Rule struct so that we get traefik config
@@ -41,23 +41,23 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	for _, rule := range config.Rules {
 		if rule.Header == "" {
 			return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
-			rule.Name)
+				rule.Name)
 		}
 		switch rule.Type {
 		case "Rename":
 			if rule.Value == "" {
 				return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
-				rule.Name)
+					rule.Name)
 			}
 		case "Set":
 			if rule.Value == "" {
 				return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
-				rule.Name)
+					rule.Name)
 			}
 		case "Join":
 			if rule.Value == "" || rule.Sep == "" {
 				return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
-				rule.Name)
+					rule.Name)
 			}
 		default:
 		}
