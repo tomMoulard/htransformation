@@ -19,12 +19,6 @@ func assertHeader(t *testing.T, req *http.Request, key, expected string) {
 }
 
 func TestOneHeader(t *testing.T) {
-	type fields struct {
-	}
-	type args struct {
-		rw  http.ResponseWriter
-		req *http.Request
-	}
 	tests := []struct {
 		name			string
 		transformations	plug.Transform
@@ -85,6 +79,7 @@ func TestOneHeader(t *testing.T) {
 			},
 			want: map[string]string{
 				"Foo": "Bar",
+				"Test": "",
 			},
 		},
 	}
