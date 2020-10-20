@@ -20,29 +20,32 @@ http:
     htransformation:
       plugin:
         dev:
-          Transformations:
-            - Transform:
+          Rules:
+            - Rule:
               Name: 'Transform1'
-              Rename: 'X-Forwarded-Port'
-              With: 'foo'
-              Type: 'request'
-            - Transform:
+              Header: 'X-Forwarded-Port'
+              Value: 'foo'
+              Type: 'rename'
+            - Rule:
               Name: 'Transform2'
-              Rename: 'X-Forwarded-Proto'
-              With: 'bar'
-              Type: 'request'
-          Setters:
-            - Set:
+              Header: 'X-Forwarded-Proto'
+              Value: 'bar'
+              Type: 'rename'
+            - Rule:
               Name: 'Set1'
               Header: 'foo'
               Value: 'bar'
-          Deletions:
-            - Del:
+              Type: 'Set'
+            - Rule:
               Name: 'Del1'
               Header: 'tutu'
-          Joins:
-            - Join:
+              Type: 'Del'
+            - Rule:
               Name: 'Join1'
               Header: 'Foo'
               Sep: ','
-              Value: 'new'
+              Value: 'join'
+              Values:
+                - 'join'
+                - 'toto'
+              Type: 'join'
