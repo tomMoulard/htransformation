@@ -21,38 +21,48 @@ type Del struct {
 	Name   string `yaml:"Name"`
 	Header string `yaml:"Header"`
 }
+type Join struct {
+	Name   string `yaml:"Name"`
+	Header string `yaml:"Header"`
+	Sep    string `yaml:"Sep"`
+	Value  string `yaml:"Value"`
+}
 
 // Config holds configuration to be passed to the plugin
 type Config struct {
 	Transformations []Transform
-    Setters []Set
-    Deletions []Del
+	Setters         []Set
+	Deletions       []Del
+	Joins           []Join
 }
 
 // CreateConfig populates the Config data object
 func CreateConfig() *Config {
 	return &Config{
 		Transformations: []Transform{},
-		Setters: []Set{},
-        Deletions: []Del{},
+		Setters:         []Set{},
+		Deletions:       []Del{},
+		Joins:           []Join{},
 	}
 }
 
 // HeadersTransformation holds the necessary components of a Traefik plugin
 type HeadersTransformation struct {
-	next			http.Handler
+	next            http.Handler
 	transformations []Transform
 	setters         []Set
-    deletions       []Del
-	name			string
+	deletions       []Del
+	joins           []Join
+	name            string
 }
 
 // New instantiates and returns the required components used to handle a HTTP request
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	return &HeadersTransformation{
 		transformations: config.Transformations,
-        setters:         config.Setters,
-        deletions:       config.Deletions,
+		setters:         config.Setters,
+		deletions:       config.Deletions,
+		joins:           config.Joins,
 		next:            next,
 		name:            name,
 	}, nil
@@ -76,11 +86,21 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 			}
 		}
 	}
-    for _, set := range u.setters {
-        req.Header.Set(set.Header, set.Value)
-    }
-    for _, del := range u.deletions {
-        req.Header.Del(del.Header)
-    }
+	for _, set := range u.setters {
+		req.Header.Set(set.Header, set.Value)
+	}
+	for _, del := range u.deletions {
+		req.Header.Del(del.Header)
+	}
+
+	//JOIN application
+	// If header found, then joining the value
+	// If no header found, then skiping
+	for _, join := range u.joins {
+		if val, ok := req.Header[join.Header]; ok {
+			req.Header.Del(join.Header)
+			req.Header.Add(join.Header, val[0]+join.Sep+join.Value)
+		}
+	}
 	u.next.ServeHTTP(rw, req)
 }

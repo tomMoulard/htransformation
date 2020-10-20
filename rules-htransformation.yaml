@@ -39,4 +39,10 @@ http:
           Deletions:
             - Del:
               Name: 'Del1'
-              Header: 'foo'
+              Header: 'tutu'
+          Joins:
+            - Join:
+              Name: 'Join1'
+              Header: 'Foo'
+              Sep: ','
+              Value: 'new'
