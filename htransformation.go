@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"regexp"
+	"fmt"
 )
 
 // Rule struct so that we get traefik config
@@ -37,6 +38,30 @@ type HeadersTransformation struct {
 
 // New instantiates and returns the required components used to handle a HTTP request
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
+	for _, rule := range config.Rules {
+		if rule.Header == "" {
+			return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
+			rule.Name)
+		}
+		switch rule.Type {
+		case "Rename":
+			if rule.Value == "" {
+				return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
+				rule.Name)
+			}
+		case "Set":
+			if rule.Value == "" {
+				return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
+				rule.Name)
+			}
+		case "Join":
+			if rule.Value == "" || rule.Sep == "" {
+				return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
+				rule.Name)
+			}
+		default:
+		}
+	}
 	return &HeadersTransformation{
 		rules: config.Rules,
 		next:  next,
@@ -50,11 +75,6 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 	for _, rule := range u.rules {
 		switch rule.Type {
 		case "Rename":
-			if rule.Header == "" || rule.Value == "" {
-				rw.Write([]byte("not done Rename: " + rule.Name + "\n"))
-				continue
-				// TODO: Add logs
-			}
 			for headerName, headerValues := range req.Header {
 				matched, err := regexp.Match(rule.Header, []byte(headerName))
 				if err != nil {
@@ -69,28 +89,10 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 				}
 			}
 		case "Set":
-			if rule.Header == "" || rule.Value == "" {
-				rw.Write([]byte("not done Set : " + rule.Name + "\n"))
-				continue
-				// TODO: Add logs
-			}
 			req.Header.Set(rule.Header, rule.Value)
 		case "Del":
-			if rule.Header == "" {
-				rw.Write([]byte("not done Del : " + rule.Name + "\n"))
-				continue
-				// TODO: Add logs
-			}
 			req.Header.Del(rule.Header)
-		//JOIN application
-		// If header found, then joining the value
-		// If no header found, then skiping
 		case "Join":
-			if rule.Header == "" || rule.Value == "" || rule.Sep == "" {
-				rw.Write([]byte("not done Join : " + rule.Name + "\n"))
-				continue
-				// TODO: Add logs
-			}
 			if val, ok := req.Header[rule.Header]; ok {
 				req.Header.Del(rule.Header)
 				req.Header.Add(rule.Header, val[0]+rule.Sep+rule.Value)
