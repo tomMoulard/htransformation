@@ -128,12 +128,14 @@ func TestHeaderRules(t *testing.T) {
 			},
 		},
 		{
-			name: "[Join] Join two headers",
+			name: "[Join] Join two headers simple value",
 			rule: plug.Rule{
 				Type:   "Join",
 				Sep:    ",",
 				Header: "X-Test",
-				Value:  "Tested",
+				Values: []string{
+					"Tested",
+				},
 			},
 			headers: map[string]string{
 				"Foo":    "Bar",
@@ -142,6 +144,27 @@ func TestHeaderRules(t *testing.T) {
 			want: map[string]string{
 				"Foo":    "Bar",
 				"X-Test": "Bar,Tested",
+			},
+		},
+		{
+			name: "[Join] Join two headers multiple value",
+			rule: plug.Rule{
+				Type:   "Join",
+				Sep:    ",",
+				Header: "X-Test",
+				Values: []string{
+					"Tested",
+					"Compiled",
+					"Working",
+				},
+			},
+			headers: map[string]string{
+				"Foo":    "Bar",
+				"X-Test": "Bar",
+			},
+			want: map[string]string{
+				"Foo":    "Bar",
+				"X-Test": "Bar,Tested,Compiled,Working",
 			},
 		},
 	}

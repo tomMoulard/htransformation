@@ -32,15 +32,19 @@ http:
               Value: 'True'
               Type: 'Set'
             - Rule:
+              Name: 'Header addition'
+              Header: 'X-Custom-2'
+              Value: 'True'
+              Type: 'Set'
+            - Rule:
               Name: 'Header deletion'
               Header: 'X-forward'
               Type: 'Del'
             - Rule:
               Name: 'Header join'
-              Header: 'Foo'
+              Header: 'X-Custom-2'
               Sep: ','
-              Value: 'join'
               Values:
-                - 'join'
-                - 'toto'
+                - 'False'
+                - 'Idk'
               Type: 'Join'
