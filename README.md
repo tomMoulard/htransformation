@@ -54,7 +54,7 @@ A Rename rule need 2 arguments
 ```yaml
 # Example Rename
 - Rule:
-      Name: 'Header join'
+      Name: 'Header rename'
       Header: 'Cache-Control'
       Value: 'NewHeader'
       Type: 'Join'
@@ -65,6 +65,21 @@ Cache-Control: gzip, deflate
 
 # New header:
 NewHeader: gzip, deflate
+```
+
+``` yaml
+- Rule:
+      Name: 'Header Renaming'
+      Header: 'X-Traefik-*'
+      Value: 'X-Traefik-merged'
+      Type: 'Join'
+```
+```yaml
+# Old header:
+X-Traefik-uuid: 0
+X-Traefik-date: mer. 21 oct. 2020 11:57:39 CEST
+# New header:
+X-Traefik-merged: 0 # A value from old headers
 ```
 
 ### Set
@@ -78,7 +93,7 @@ A rule Set need 2 arguments
 ```yaml
 # Example Join
 - Rule:
-      Name: 'Header join'
+      Name: 'Set Cache-Control'
       Header: 'Cache-Control'
       Value: 'Foo'
       Type: 'Join'
