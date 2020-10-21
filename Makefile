@@ -2,10 +2,15 @@
 
 export GO111MODULE=on
 
-default: lint test
+SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
+
+default: fmt lint test
 
 lint:
 	golangci-lint run
+
+fmt:
+	gofmt -l -w $(SRC)
 
 test:
 	go test -v -cover ./...
