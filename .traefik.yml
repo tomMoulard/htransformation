@@ -14,23 +14,18 @@ testData:
       Type: 'Rename'
     - Rule:
       Name: 'Header addition'
-      Header: 'X-Custom'
-      Value: 'True'
-      Type: 'Set'
-    - Rule:
-      Name: 'Header addition'
-      Header: 'X-Custom-2'
+      Header: 'NewHeader'
       Value: 'True'
       Type: 'Set'
     - Rule:
       Name: 'Header deletion'
-      Header: 'X-forward'
+      Header: 'Cache-Control'
       Type: 'Del'
     - Rule:
       Name: 'Header join'
-      Header: 'X-Custom-2'
-      Sep: ','
+      Header: 'Accept-Language'
+      Sep: ', '
       Values:
-        - 'False'
-        - 'Idk'
+        - 'Foo'
+        - 'Bar'
       Type: 'Join'

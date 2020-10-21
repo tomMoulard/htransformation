@@ -48,3 +48,11 @@ http:
                 - 'False'
                 - 'Idk'
               Type: 'Join'
+            - Rule:
+              Name: 'Header join'
+              Header: 'Cache-Control'
+              Sep: ','
+              Values:
+                - 'Foo'
+                - 'Bar'
+              Type: 'Join'
