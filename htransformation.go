@@ -39,11 +39,11 @@ type HeadersTransformation struct {
 // New instantiates and returns the required components used to handle a HTTP request
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	for _, rule := range config.Rules {
-		if rule.Header == "" || rule.Type == ""{
+		if rule.Header == "" || rule.Type == "" {
 			return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
 				rule.Name)
 		}
-		if rule.Type == "Join" && (rule.Value == "" || rule.Sep == "") {
+		if rule.Type == "Join" && (len(rule.Values) == 0 || rule.Sep == "") {
 			return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
 				rule.Name)
 		}
@@ -81,7 +81,11 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 		case "Join":
 			if val, ok := req.Header[rule.Header]; ok {
 				req.Header.Del(rule.Header)
-				req.Header.Add(rule.Header, val[0]+rule.Sep+rule.Value)
+				tmp_val := val[0]
+				for _, value := range rule.Values {
+					tmp_val += rule.Sep + value
+				}
+				req.Header.Add(rule.Header, tmp_val)
 			}
 		default:
 		}
