@@ -32,5 +32,7 @@ install:
   - go mod download
   - go mod vendor
   # - git diff --exit-code ./vendor/
+  - make fmt
+  - git diff --exit-code
 
 script: make lint test
