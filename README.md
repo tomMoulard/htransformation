@@ -144,3 +144,25 @@ Cache-Control: gzip, deflate
 # Joined header:
 Cache-Control: gzip, deflate,Foo,Bar
 ```
+### Careful
+
+The rules will be evaluated in the order of definition
+
+```yaml
+#Example
+- Rule:
+  Name: 'Header addition'
+  Header: 'X-Custom-2'
+  Value: 'True'
+  Type: 'Set'
+- Rule:
+  Name: 'Header deletion'
+  Header: 'X-Custom-2'
+  Type: 'Del'
+- Rule:
+  Name: 'Header join'
+  Header: 'X-Custom-2'
+  Value: 'False'
+  Type: 'Set'
+```
+Will firstly set the header `X-Custom-2` to 'True', then delete it and lastly set it again but with `False`
