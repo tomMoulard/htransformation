@@ -57,7 +57,7 @@ A Rename rule need 2 arguments
       Name: 'Header rename'
       Header: 'Cache-Control'
       Value: 'NewHeader'
-      Type: 'Join'
+      Type: 'Rename'
 ```
 ```yaml
 # Old header:
@@ -72,7 +72,7 @@ NewHeader: gzip, deflate
       Name: 'Header Renaming'
       Header: 'X-Traefik-*'
       Value: 'X-Traefik-merged'
-      Type: 'Join'
+      Type: 'Rename'
 ```
 ```yaml
 # Old header:
