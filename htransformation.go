@@ -101,7 +101,7 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 }
 
 // getValue checks if prefix exists, the given prefix is present, and then proceeds to read the existing header (after stripping the prefix) to return as value
-func getValue(ruleValue string, vauleIsHeaderPrefix string, req *http.Request) string {
+func getValue(ruleValue, vauleIsHeaderPrefix string, req *http.Request) string {
 	actualValue := ruleValue
 	if vauleIsHeaderPrefix != "" && strings.HasPrefix(ruleValue, vauleIsHeaderPrefix) {
 		header := strings.TrimPrefix(ruleValue, vauleIsHeaderPrefix)
