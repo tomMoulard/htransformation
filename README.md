@@ -31,13 +31,16 @@ providers:
 ```
 
 ## How to dev
+
 ```bash
 $ docker run -d --network host containous/whoami -port 5000
 # traefik --config-file traefik.yml
 ```
+
 ## How to use
 
 To choose a Rule you have to fill the `Type` field with either
+
 - 'Rename'  : to rename a header
 - 'Set'     : to Set a header
 - 'Del'     : to Delete a header
@@ -48,6 +51,7 @@ Each Rule can be named with the `Name` field
 ### Rename
 
 A Rename rule need 2 arguments
+
 - `Header`, the regex of the header you want to replace
 - `Value`, the new header
 
@@ -59,6 +63,7 @@ A Rename rule need 2 arguments
       Value: 'NewHeader'
       Type: 'Rename'
 ```
+
 ```yaml
 # Old header:
 Cache-Control: gzip, deflate
@@ -74,6 +79,7 @@ NewHeader: gzip, deflate
       Value: 'X-Traefik-merged'
       Type: 'Rename'
 ```
+
 ```yaml
 # Old header:
 X-Traefik-uuid: 0
@@ -87,6 +93,7 @@ X-Traefik-merged: 0 # A value from old headers
 A Set rule will either create or replace the header and value (if it already exist)
 
 A rule Set need 2 arguments
+
 - `Header`, the header you want to create
 - `Value`, the value of the new header
 
@@ -98,6 +105,7 @@ A rule Set need 2 arguments
       Value: 'Foo'
       Type: 'Join'
 ```
+
 ```yaml
 # New header:
 Cache-Control: Foo
@@ -106,6 +114,7 @@ Cache-Control: Foo
 ### Delete
 
 A rule Delete need 1 arguments
+
 - `Header`, the header you want to delete
 
 ```yaml
@@ -137,6 +146,7 @@ It needs 3 arguments
         - 'Bar'
       Type: 'Join'
 ```
+
 ```yaml
 # Old header:
 Cache-Control: gzip, deflate
@@ -166,6 +176,7 @@ The rules will be evaluated in the order of definition
   Value: 'False'
   Type: 'Set'
 ```
+
 Will firstly set the header `X-Custom-2` to 'True', then delete it and lastly set it again but with `False`
 
 # Authors
