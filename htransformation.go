@@ -10,13 +10,13 @@ import (
 
 // Rule struct so that we get traefik config
 type Rule struct {
-	Name                string   `yaml:"Name"`
-	Header              string   `yaml:"Header"`
-	Value               string   `yaml:"Value"`
-	Values              []string `yaml:"Values"`
-	ValueIsHeaderPrefix string   `yaml:"vauleIsHeaderPrefix"`
-	Sep                 string   `yaml:"Sep"`
-	Type                string   `yaml:"Type"`
+	Name         string   `yaml:"Name"`
+	Header       string   `yaml:"Header"`
+	Value        string   `yaml:"Value"`
+	Values       []string `yaml:"Values"`
+	HeaderPrefix string   `yaml:"HeaderPrefix"`
+	Sep          string   `yaml:"Sep"`
+	Type         string   `yaml:"Type"`
 }
 
 // Config holds configuration to be passed to the plugin
@@ -49,8 +49,8 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 			return nil, fmt.Errorf("can't use '%s', some required fields are empty",
 				rule.Name)
 		}
-		if rule.ValueIsHeaderPrefix != "" && rule.Value == "" && len(rule.Values) == 0 {
-			return nil, fmt.Errorf("can't use '%s', cannot set ValueIsHeaderPrefix without passing in Value/Values",
+		if rule.HeaderPrefix != "" && rule.Value == "" && len(rule.Values) == 0 {
+			return nil, fmt.Errorf("can't use '%s', cannot set HeaderPrefix without passing in Value/Values",
 				rule.Name)
 		}
 	}
@@ -76,19 +76,19 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 				if matched {
 					req.Header.Del(headerName)
 					for _, val := range headerValues {
-						req.Header.Set(getValue(rule.Value, rule.ValueIsHeaderPrefix, req), val)
+						req.Header.Set(getValue(rule.Value, rule.HeaderPrefix, req), val)
 					}
 				}
 			}
 		case "Set":
-			req.Header.Set(rule.Header, getValue(rule.Value, rule.ValueIsHeaderPrefix, req))
+			req.Header.Set(rule.Header, getValue(rule.Value, rule.HeaderPrefix, req))
 		case "Del":
 			req.Header.Del(rule.Header)
 		case "Join":
 			if val, ok := req.Header[rule.Header]; ok {
 				tmp_val := val[0]
 				for _, value := range rule.Values {
-					tmp_val += rule.Sep + getValue(value, rule.ValueIsHeaderPrefix, req)
+					tmp_val += rule.Sep + getValue(value, rule.HeaderPrefix, req)
 				}
 				// Delete after creating the tmp_val, so that if the values refer itself, it won't be empty.
 				req.Header.Del(rule.Header)

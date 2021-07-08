@@ -61,25 +61,25 @@ http:
               Name: 'Header transformation to another header value'
               Header: 'X-Traefik-*'
               Value: '^X-custom'
-              ValueIsHeaderPrefix: "^"
+              HeaderPrefix: "^"
               Type: 'Rename'
             - Rule:
               Name: 'Header addition'
               Header: 'X-Custom'
               Value: '^X-Source'
-              ValueIsHeaderPrefix: "^"
+              HeaderPrefix: "^"
               Type: 'Set'
             - Rule:
               Name: 'Header addition'
               Header: 'X-Custom-2'
               Value: '^X-Source'
-              ValueIsHeaderPrefix: "^"
+              HeaderPrefix: "^"
               Type: 'Set'
             - Rule:
               Name: 'Header join'
               Header: 'X-Custom-2'
               Sep: ','
-              ValueIsHeaderPrefix: "^"
+              HeaderPrefix: "^"
               Values:
                 - '^X-Source-1'
                 - 'Foo'
@@ -88,7 +88,7 @@ http:
               Name: 'Header join'
               Header: 'X-Forwarded-For'
               Sep: ','
-              ValueIsHeaderPrefix: "^"
+              HeaderPrefix: "^"
               Values:
                 - '^CF-Connecting-IP'
                 - '192.168.0.1'

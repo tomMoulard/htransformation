@@ -168,12 +168,12 @@ func TestHeaderRules(t *testing.T) {
 			},
 		},
 		{
-			name: "[Rename] no transformation with ValueIsHeaderPrefix",
+			name: "[Rename] no transformation with HeaderPrefix",
 			rule: plug.Rule{
-				Type:                "Rename",
-				Header:              "not-existing",
-				Value:               "^unused",
-				ValueIsHeaderPrefix: "^",
+				Type:         "Rename",
+				Header:       "not-existing",
+				Value:        "^unused",
+				HeaderPrefix: "^",
 			},
 			headers: map[string]string{
 				"Foo": "Bar",
@@ -185,10 +185,10 @@ func TestHeaderRules(t *testing.T) {
 		{
 			name: "[Rename] one transformation",
 			rule: plug.Rule{
-				Type:                "Rename",
-				Header:              "Test",
-				Value:               "^X-Dest-Header",
-				ValueIsHeaderPrefix: "^",
+				Type:         "Rename",
+				Header:       "Test",
+				Value:        "^X-Dest-Header",
+				HeaderPrefix: "^",
 			},
 			headers: map[string]string{
 				"Foo":           "Bar",
@@ -204,10 +204,10 @@ func TestHeaderRules(t *testing.T) {
 		{
 			name: "[Set] new header from existing",
 			rule: plug.Rule{
-				Type:                "Set",
-				Header:              "X-Test",
-				Value:               "^X-Source",
-				ValueIsHeaderPrefix: "^",
+				Type:         "Set",
+				Header:       "X-Test",
+				Value:        "^X-Source",
+				HeaderPrefix: "^",
 			},
 			headers: map[string]string{
 				"Foo":      "Bar",
@@ -222,10 +222,10 @@ func TestHeaderRules(t *testing.T) {
 		{
 			name: "[Set] existing header from another existing",
 			rule: plug.Rule{
-				Type:                "Set",
-				Header:              "X-Test",
-				Value:               "^X-Source",
-				ValueIsHeaderPrefix: "^",
+				Type:         "Set",
+				Header:       "X-Test",
+				Value:        "^X-Source",
+				HeaderPrefix: "^",
 			},
 			headers: map[string]string{
 				"Foo":      "Bar",
@@ -247,7 +247,7 @@ func TestHeaderRules(t *testing.T) {
 				Values: []string{
 					"^X-Source",
 				},
-				ValueIsHeaderPrefix: "^",
+				HeaderPrefix: "^",
 			},
 			headers: map[string]string{
 				"Foo":      "Bar",
@@ -271,7 +271,7 @@ func TestHeaderRules(t *testing.T) {
 					"Compiled",
 					"^X-Source-3",
 				},
-				ValueIsHeaderPrefix: "^",
+				HeaderPrefix: "^",
 			},
 			headers: map[string]string{
 				"Foo":        "Bar",
@@ -297,7 +297,7 @@ func TestHeaderRules(t *testing.T) {
 					"^X-Test",
 					"^X-Source-3",
 				},
-				ValueIsHeaderPrefix: "^",
+				HeaderPrefix: "^",
 			},
 			headers: map[string]string{
 				"Foo":        "Bar",

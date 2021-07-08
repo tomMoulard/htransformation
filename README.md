@@ -179,7 +179,7 @@ The rules will be evaluated in the order of definition
 
 ### Advanced: (Re)Using other headers
 
-You can reuse other header values in `Value` or one of the `Values` by setting an additional argument `ValueIsHeaderPrefix`.
+You can reuse other header values in `Value` or one of the `Values` by setting an additional argument `HeaderPrefix`.
 Example:
 
 ```yaml
@@ -188,7 +188,7 @@ Example:
   Name: 'Header set'
   Header: 'X-Forwarded-For'
   Value: '^CF-Connecting-IP'
-  ValueIsHeaderPrefix: "^"
+  HeaderPrefix: "^"
   Type: 'Set'
 ```
 
