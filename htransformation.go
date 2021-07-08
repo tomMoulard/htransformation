@@ -42,16 +42,22 @@ type HeadersTransformation struct {
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	for _, rule := range config.Rules {
 		if rule.Header == "" || rule.Type == "" {
-			return nil, fmt.Errorf("can't use '%s', some required fields are empty",
+			return nil, fmt.Errorf("can't use '%s', header and type cannot be empty",
 				rule.Name)
 		}
-		if rule.Type == "Join" && (len(rule.Values) == 0 || rule.Sep == "") {
-			return nil, fmt.Errorf("can't use '%s', some required fields are empty",
+		if rule.Type == "Set" && rule.Sep == "" && ((rule.Value != "" && len(rule.Values) > 0) || len(rule.Values) > 1) {
+			return nil, fmt.Errorf("can't use '%s', specify Sep with more than one value to set",
 				rule.Name)
 		}
-		if rule.HeaderPrefix != "" && rule.Value == "" && len(rule.Values) == 0 {
-			return nil, fmt.Errorf("can't use '%s', cannot set HeaderPrefix without passing in Value/Values",
-				rule.Name)
+		if rule.Value == "" && len(rule.Values) == 0 {
+			if rule.Type == "Set" {
+				return nil, fmt.Errorf("can't use '%s', specify either Value or Values",
+					rule.Name)
+			}
+			if rule.HeaderPrefix != "" {
+				return nil, fmt.Errorf("can't use '%s', cannot set HeaderPrefix without passing in Value/Values",
+					rule.Name)
+			}
 		}
 	}
 	return &HeadersTransformation{
@@ -81,19 +87,19 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 				}
 			}
 		case "Set":
-			req.Header.Set(rule.Header, getValue(rule.Value, rule.HeaderPrefix, req))
+			// Set to value, and append values if present. Either of them can be empty
+			tmp_val := getValue(rule.Value, rule.HeaderPrefix, req)
+			if len(rule.Values) != 0 {
+				for _, value := range rule.Values {
+					if tmp_val != "" {
+						tmp_val += rule.Sep
+					}
+					tmp_val += getValue(value, rule.HeaderPrefix, req)
+				}
+			}
+			req.Header.Set(rule.Header, tmp_val)
 		case "Del":
 			req.Header.Del(rule.Header)
-		case "Join":
-			if val, ok := req.Header[rule.Header]; ok {
-				tmp_val := val[0]
-				for _, value := range rule.Values {
-					tmp_val += rule.Sep + getValue(value, rule.HeaderPrefix, req)
-				}
-				// Delete after creating the tmp_val, so that if the values refer itself, it won't be empty.
-				req.Header.Del(rule.Header)
-				req.Header.Add(rule.Header, tmp_val)
-			}
 		default:
 		}
 	}
