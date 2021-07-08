@@ -177,6 +177,30 @@ The rules will be evaluated in the order of definition
   Type: 'Set'
 ```
 
+### Advanced: (Re)Using other headers
+
+You can reuse other header values in `Value` or one of the `Values` by setting an additional argument `ValueIsHeaderPrefix`.
+Example:
+
+```yaml
+# Example Usage
+- Rule:
+  Name: 'Header set'
+  Header: 'X-Forwarded-For'
+  Value: '^CF-Connecting-IP'
+  ValueIsHeaderPrefix: "^"
+  Type: 'Set'
+```
+
+```yaml
+# Old header:
+CF-Connecting-IP: 1.1.1.1
+
+# New headers:
+CF-Connecting-IP: 1.1.1.1
+X-Forwarded-For: 1.1.1.1
+```
+
 Will firstly set the header `X-Custom-2` to 'True', then delete it and lastly set it again but with `False`
 
 # Authors
