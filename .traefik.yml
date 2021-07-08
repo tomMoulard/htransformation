@@ -28,4 +28,4 @@ testData:
       Values:
         - 'Foo'
         - 'Bar'
-      Type: 'Join'
+      Type: 'Set'

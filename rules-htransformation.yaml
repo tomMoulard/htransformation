@@ -47,7 +47,7 @@ http:
               Values:
                 - 'False'
                 - 'Idk'
-              Type: 'Join'
+              Type: 'Set'
             - Rule:
               Name: 'Header join'
               Header: 'Cache-Control'
@@ -55,7 +55,7 @@ http:
               Values:
                 - 'Foo'
                 - 'Bar'
-              Type: 'Join'
+              Type: 'Set'
             # Advanced use cases for fix of #14
             - Rule:
               Name: 'Header transformation to another header value'
@@ -83,7 +83,7 @@ http:
               Values:
                 - '^X-Source-1'
                 - 'Foo'
-              Type: 'Join'
+              Type: 'Set'
             - Rule:
               Name: 'Header join'
               Header: 'X-Forwarded-For'
@@ -92,4 +92,4 @@ http:
               Values:
                 - '^CF-Connecting-IP'
                 - '192.168.0.1'
-              Type: 'Join'
+              Type: 'Set'
