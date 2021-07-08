@@ -42,15 +42,15 @@ type HeadersTransformation struct {
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	for _, rule := range config.Rules {
 		if rule.Header == "" || rule.Type == "" {
-			return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
+			return nil, fmt.Errorf("can't use '%s', some required fields are empty",
 				rule.Name)
 		}
 		if rule.Type == "Join" && (len(rule.Values) == 0 || rule.Sep == "") {
-			return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
+			return nil, fmt.Errorf("can't use '%s', some required fields are empty",
 				rule.Name)
 		}
 		if rule.ValueIsHeaderPrefix != "" && rule.Value == "" && len(rule.Values) == 0 {
-			return nil, fmt.Errorf("Can't use '%s', cannot set ValueIsHeaderPrefix without passing in Value/Values",
+			return nil, fmt.Errorf("can't use '%s', cannot set ValueIsHeaderPrefix without passing in Value/Values",
 				rule.Name)
 		}
 	}
