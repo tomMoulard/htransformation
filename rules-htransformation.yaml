@@ -56,3 +56,40 @@ http:
                 - 'Foo'
                 - 'Bar'
               Type: 'Join'
+            # Advanced use cases for fix of #14
+            - Rule:
+              Name: 'Header transformation to another header value'
+              Header: 'X-Traefik-*'
+              Value: '^X-custom'
+              ValueIsHeaderPrefix: "^"
+              Type: 'Rename'
+            - Rule:
+              Name: 'Header addition'
+              Header: 'X-Custom'
+              Value: '^X-Source'
+              ValueIsHeaderPrefix: "^"
+              Type: 'Set'
+            - Rule:
+              Name: 'Header addition'
+              Header: 'X-Custom-2'
+              Value: '^X-Source'
+              ValueIsHeaderPrefix: "^"
+              Type: 'Set'
+            - Rule:
+              Name: 'Header join'
+              Header: 'X-Custom-2'
+              Sep: ','
+              ValueIsHeaderPrefix: "^"
+              Values:
+                - '^X-Source-1'
+                - 'Foo'
+              Type: 'Join'
+            - Rule:
+              Name: 'Header join'
+              Header: 'X-Forwarded-For'
+              Sep: ','
+              ValueIsHeaderPrefix: "^"
+              Values:
+                - '^CF-Connecting-IP'
+                - '192.168.0.1'
+              Type: 'Join'

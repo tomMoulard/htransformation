@@ -167,6 +167,148 @@ func TestHeaderRules(t *testing.T) {
 				"X-Test": "Bar,Tested,Compiled,Working",
 			},
 		},
+		{
+			name: "[Rename] no transformation with ValueIsHeaderPrefix",
+			rule: plug.Rule{
+				Type:                "Rename",
+				Header:              "not-existing",
+				Value:               "^unused",
+				ValueIsHeaderPrefix: "^",
+			},
+			headers: map[string]string{
+				"Foo": "Bar",
+			},
+			want: map[string]string{
+				"Foo": "Bar",
+			},
+		},
+		{
+			name: "[Rename] one transformation",
+			rule: plug.Rule{
+				Type:                "Rename",
+				Header:              "Test",
+				Value:               "^X-Dest-Header",
+				ValueIsHeaderPrefix: "^",
+			},
+			headers: map[string]string{
+				"Foo":           "Bar",
+				"Test":          "Success",
+				"X-Dest-Header": "X-Testing",
+			},
+			want: map[string]string{
+				"Foo":           "Bar",
+				"X-Dest-Header": "X-Testing",
+				"X-Testing":     "Success",
+			},
+		},
+		{
+			name: "[Set] new header from existing",
+			rule: plug.Rule{
+				Type:                "Set",
+				Header:              "X-Test",
+				Value:               "^X-Source",
+				ValueIsHeaderPrefix: "^",
+			},
+			headers: map[string]string{
+				"Foo":      "Bar",
+				"X-Source": "SourceHeader",
+			},
+			want: map[string]string{
+				"Foo":      "Bar",
+				"X-Source": "SourceHeader",
+				"X-Test":   "SourceHeader",
+			},
+		},
+		{
+			name: "[Set] existing header from another existing",
+			rule: plug.Rule{
+				Type:                "Set",
+				Header:              "X-Test",
+				Value:               "^X-Source",
+				ValueIsHeaderPrefix: "^",
+			},
+			headers: map[string]string{
+				"Foo":      "Bar",
+				"X-Source": "SourceHeader",
+				"X-Test":   "Initial",
+			},
+			want: map[string]string{
+				"Foo":      "Bar",
+				"X-Source": "SourceHeader",
+				"X-Test":   "SourceHeader",
+			},
+		},
+		{
+			name: "[Join] Join two headers simple value",
+			rule: plug.Rule{
+				Type:   "Join",
+				Sep:    ",",
+				Header: "X-Test",
+				Values: []string{
+					"^X-Source",
+				},
+				ValueIsHeaderPrefix: "^",
+			},
+			headers: map[string]string{
+				"Foo":      "Bar",
+				"X-Source": "Tested",
+				"X-Test":   "Bar",
+			},
+			want: map[string]string{
+				"Foo":      "Bar",
+				"X-Source": "Tested",
+				"X-Test":   "Bar,Tested",
+			},
+		},
+		{
+			name: "[Join] Join two headers multiple value",
+			rule: plug.Rule{
+				Type:   "Join",
+				Sep:    ",",
+				Header: "X-Test",
+				Values: []string{
+					"^X-Source-1",
+					"Compiled",
+					"^X-Source-3",
+				},
+				ValueIsHeaderPrefix: "^",
+			},
+			headers: map[string]string{
+				"Foo":        "Bar",
+				"X-Test":     "Bar",
+				"X-Source-1": "Tested",
+				"X-Source-3": "Working",
+			},
+			want: map[string]string{
+				"Foo":        "Bar",
+				"X-Test":     "Bar,Tested,Compiled,Working",
+				"X-Source-1": "Tested",
+				"X-Source-3": "Working",
+			},
+		},
+		{
+			name: "[Join] Join two headers multiple value with itself",
+			rule: plug.Rule{
+				Type:   "Join",
+				Sep:    ",",
+				Header: "X-Test",
+				Values: []string{
+					"second",
+					"^X-Test",
+					"^X-Source-3",
+				},
+				ValueIsHeaderPrefix: "^",
+			},
+			headers: map[string]string{
+				"Foo":        "Bar",
+				"X-Test":     "test",
+				"X-Source-3": "third",
+			},
+			want: map[string]string{
+				"Foo":    "Bar",
+				"X-Test": "test,second,test,third",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
