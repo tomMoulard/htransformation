@@ -104,7 +104,7 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 						replacedHeaderValue := rule.ValueReplace
 						r := regexp.MustCompile(rule.Value)
 						captures := r.FindStringSubmatch(headerValue)
-						if len(captures) == 0 || len(captures[0]) == 0 {
+						if len(captures) == 0 || captures[0] == "" {
 							req.Header.Add(headerName, headerValue)
 						}
 						for j, capture := range captures[1:] {
