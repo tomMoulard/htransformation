@@ -161,49 +161,18 @@ func TestHeaderRules(t *testing.T) {
 			},
 		},
 		{
-			name: "[ValueRewriteRule] two transformations",
+			name: "[ValueRewriteRule] one transformation",
 			rule: plug.Rule{
-				Type:   "RewriteValueRule",
-				Header: "F(.*)",
-				Value:  "X-Test",
+				Type:         "RewriteValueRule",
+				Header:       "F(.*)",
+				Value:        `X-(\d*)-(.*)`,
+				ValueReplace: "Y-$2-$1",
 			},
 			headers: map[string]string{
-				"Foo": "Bar",
-				"Faa": "Baz",
+				"Foo": "X-12-Test",
 			},
 			want: map[string]string{
-				"Foo": "X-Test",
-				"Faa": "X-Test",
-			},
-		},
-		{
-			name: "[ValueRewriteRule] no transformation",
-			rule: plug.Rule{
-				Type:   "RewriteValueRule",
-				Header: "F(.*)",
-				Value:  "X-Test",
-			},
-			headers: map[string]string{
-				"Baz": "Bar",
-			},
-			want: map[string]string{
-				"Baz": "Bar",
-			},
-		},
-		{
-			name: "[ValueRewriteRule] idempotent as Set on existing header",
-			rule: plug.Rule{
-				Type:   "RewriteValueRule",
-				Header: "X-Test",
-				Value:  "Tested",
-			},
-			headers: map[string]string{
-				"Foo":    "Bar",
-				"X-Test": "Bar",
-			},
-			want: map[string]string{
-				"Foo":    "Bar",
-				"X-Test": "Tested", // Override
+				"Foo": "Y-Test-12",
 			},
 		},
 	}

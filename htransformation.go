@@ -5,16 +5,29 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
+)
+
+type RuleType string
+
+const (
+	Set              RuleType = "Set"
+	Join             RuleType = "Join"
+	Delete           RuleType = "Del"
+	Rename           RuleType = "Rename"
+	RewriteValueRule RuleType = "RewriteValueRule"
+	EmptyType        RuleType = ""
 )
 
 // Rule struct so that we get traefik config
 type Rule struct {
-	Name   string   `yaml:"Name"`
-	Header string   `yaml:"Header"`
-	Value  string   `yaml:"Value"`
-	Values []string `yaml:"Values"`
-	Sep    string   `yaml:"Sep"`
-	Type   string   `yaml:"Type"`
+	Name         string   `yaml:"Name"`
+	Header       string   `yaml:"Header"`
+	Value        string   `yaml:"Value"`
+	ValueReplace string   `yaml:"ValueReplace"`
+	Values       []string `yaml:"Values"`
+	Sep          string   `yaml:"Sep"`
+	Type         RuleType `yaml:"Type"`
 }
 
 // Config holds configuration to be passed to the plugin
@@ -39,12 +52,16 @@ type HeadersTransformation struct {
 // New instantiates and returns the required components used to handle a HTTP request
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	for _, rule := range config.Rules {
-		if rule.Header == "" || rule.Type == "" {
-			return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
+		if rule.Header == "" || rule.Type == EmptyType {
+			return nil, fmt.Errorf("can't use '%s', some required fields are empty",
 				rule.Name)
 		}
-		if rule.Type == "Join" && (len(rule.Values) == 0 || rule.Sep == "") {
-			return nil, fmt.Errorf("Can't use '%s', some required fields are empty",
+		if rule.Type == Join && (len(rule.Values) == 0 || rule.Sep == "") {
+			return nil, fmt.Errorf("can't use '%s', some required fields are empty",
+				rule.Name)
+		}
+		if rule.Type == RewriteValueRule && (len(rule.ValueReplace) == 0) {
+			return nil, fmt.Errorf("can't use %s, some required fields are empty",
 				rule.Name)
 		}
 	}
@@ -60,7 +77,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	for _, rule := range u.rules {
 		switch rule.Type {
-		case "Rename":
+		case Rename:
 			for headerName, headerValues := range req.Header {
 				matched, err := regexp.Match(rule.Header, []byte(headerName))
 				if err != nil {
@@ -74,22 +91,35 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 					}
 				}
 			}
-		case "RewriteValueRule":
-			for headerName := range req.Header {
+		case RewriteValueRule:
+			for headerName, headerValues := range req.Header {
 				matched, err := regexp.Match(rule.Header, []byte(headerName))
 				if err != nil {
 					http.Error(rw, err.Error(), http.StatusInternalServerError)
 					return
 				}
 				if matched {
-					req.Header.Set(headerName, rule.Value)
+					req.Header.Del(headerName)
+					for _, headerValue := range headerValues {
+						replacedHeaderValue := rule.ValueReplace
+						r := regexp.MustCompile(rule.Value)
+						captures := r.FindAllStringSubmatch(headerValue, -1)
+						if len(captures) == 0 || len(captures[0]) == 0 {
+							continue
+						}
+						for j, capture := range captures[0][1:] {
+							placeholder := fmt.Sprintf("$%d", j+1)
+							replacedHeaderValue = strings.ReplaceAll(replacedHeaderValue, placeholder, capture)
+						}
+						req.Header.Add(headerName, replacedHeaderValue)
+					}
 				}
 			}
-		case "Set":
+		case Set:
 			req.Header.Set(rule.Header, rule.Value)
-		case "Del":
+		case Delete:
 			req.Header.Del(rule.Header)
-		case "Join":
+		case Join:
 			if val, ok := req.Header[rule.Header]; ok {
 				req.Header.Del(rule.Header)
 				tmpVal := val[0]
