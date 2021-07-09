@@ -175,6 +175,38 @@ func TestHeaderRules(t *testing.T) {
 				"Foo": "Y-Test-12",
 			},
 		},
+		{
+			// the value doesn't match, we leave the value as is
+			name: "[ValueRewriteRule] no match",
+			rule: plug.Rule{
+				Type:         "RewriteValueRule",
+				Header:       "F(.*)",
+				Value:        `(\d*)`,
+				ValueReplace: "Y-$2-$1",
+			},
+			headers: map[string]string{
+				"Foo": "X-Test",
+			},
+			want: map[string]string{
+				"Foo": "X-Test",
+			},
+		},
+		{
+			// no placeholder but the value matches, we replace the value
+			name: "[ValueRewriteRule] no placeholder",
+			rule: plug.Rule{
+				Type:         "RewriteValueRule",
+				Header:       "F(.*)",
+				Value:        `X-(.*)`,
+				ValueReplace: "Y-Bla",
+			},
+			headers: map[string]string{
+				"Foo": "X-Test",
+			},
+			want: map[string]string{
+				"Foo": "Y-Bla",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
