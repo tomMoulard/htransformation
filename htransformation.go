@@ -60,7 +60,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 			return nil, fmt.Errorf("can't use '%s', some required fields are empty",
 				rule.Name)
 		}
-		if rule.Type == RewriteValueRule && (len(rule.ValueReplace) == 0) {
+		if rule.Type == RewriteValueRule && rule.ValueReplace == "" {
 			return nil, fmt.Errorf("can't use %s, some required fields are empty",
 				rule.Name)
 		}
