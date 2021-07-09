@@ -157,18 +157,17 @@ It needs 2 arguments
 # Example RewriteValueRule
 - Rule:
       Name: 'Header rewriteValue'
-      Header: 'F(.*)'
-      Value: 'Baz'
+      Header: 'Foo'
+      Value: 'X-(.*)'
+      ValueReplace: 'Y-$1'
       Type: 'RewriteValueRule'
 ```
 ```yaml
 # Old header:
-Foo: Bar
-Faa: Quux
+Foo: X-Test
 
 # Modified header:
-Foo: Baz
-Faa: Baz
+Foo: Y-Test
 ```
 ### Careful
 
