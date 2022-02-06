@@ -6,17 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	plug "github.com/tommoulard/htransformation"
 )
-
-func assertHeader(t *testing.T, req *http.Request, key, expected string) {
-	t.Helper()
-
-	h := req.Header.Get(key)
-	if h != expected {
-		t.Errorf("invalid header value, got '%s', expect: '%s'", h, expected)
-	}
-}
 
 func TestHeaderRules(t *testing.T) {
 	tests := []struct {
@@ -177,16 +170,12 @@ func TestHeaderRules(t *testing.T) {
 			next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
 
 			handler, err := plug.New(ctx, next, cfg, "demo-plugin")
-			if err != nil {
-				t.Fatal(err)
-			}
+			require.NoError(t, err)
 
 			recorder := httptest.NewRecorder()
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
-			if err != nil {
-				t.Fatal(err)
-			}
+			require.NoError(t, err)
 
 			for hName, hVal := range tt.headers {
 				req.Header.Add(hName, hVal)
@@ -195,7 +184,7 @@ func TestHeaderRules(t *testing.T) {
 			handler.ServeHTTP(recorder, req)
 
 			for hName, hVal := range tt.want {
-				assertHeader(t, req, hName, hVal)
+				assert.Equal(t, hVal, req.Header.Get(hName))
 			}
 		})
 	}

@@ -81,11 +81,11 @@ func (u *HeadersTransformation) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 		case "Join":
 			if val, ok := req.Header[rule.Header]; ok {
 				req.Header.Del(rule.Header)
-				tmp_val := val[0]
+				tmpVal := val[0]
 				for _, value := range rule.Values {
-					tmp_val += rule.Sep + value
+					tmpVal += rule.Sep + value
 				}
-				req.Header.Add(rule.Header, tmp_val)
+				req.Header.Add(rule.Header, tmpVal)
 			}
 		default:
 		}
