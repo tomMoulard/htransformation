@@ -44,7 +44,8 @@ jobs:
         run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin ${GOLANGCI_LINT_VERSION}
 
       - name: Install yaegi ${{ env.YAEGI_VERSION }}
-        run: curl -sfL https://raw.githubusercontent.com/traefik/yaegi/master/install.sh | bash -s -- -b $GOPATH/bin ${YAEGI_VERSION}
+        run: curl -sfL https://raw.githubusercontent.com/traefik/yaegi/master/install.sh | bash -s -- -b $(go env GOPATH)/bin ${YAEGI_VERSION}
+
 
       - name: go generate
         run: |
@@ -63,10 +64,5 @@ jobs:
 
       - name: make lint
         run: |
-          make lint
-          git diff --exit-code
-
-      - name: make test
-        run: |
-          make test
+          make lint test
           git diff --exit-code
