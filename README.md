@@ -145,6 +145,30 @@ Cache-Control: gzip, deflate
 Cache-Control: gzip, deflate,Foo,Bar
 ```
 
+### RewriteValueRule
+
+A RewriteValueRule will replace the values of the headers identified by a matching regex with the provided value.
+
+It needs 2 arguments
+- `Header`, the header or regex identifying the headers you want to modify
+- `Value`, the new value of the headers
+
+```yaml
+# Example RewriteValueRule
+- Rule:
+      Name: 'Header rewriteValue'
+      Header: 'Foo'
+      Value: 'X-(.*)'
+      ValueReplace: 'Y-$1'
+      Type: 'RewriteValueRule'
+```
+```yaml
+# Old header:
+Foo: X-Test
+
+# Modified header:
+Foo: Y-Test
+```
 ### Careful
 
 The rules will be evaluated in the order of definition
