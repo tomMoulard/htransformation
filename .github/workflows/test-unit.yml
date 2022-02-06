@@ -46,6 +46,8 @@ jobs:
       - name: Install yaegi ${{ env.YAEGI_VERSION }}
         run: curl -sfL https://raw.githubusercontent.com/traefik/yaegi/master/install.sh | bash -s -- -b $(go env GOPATH)/bin ${YAEGI_VERSION}
 
+      - name: Setup GOPATH
+        run: go env -w GOPATH=${{ github.workspace }}/go
 
       - name: go generate
         run: |
@@ -62,7 +64,11 @@ jobs:
           make fmt
           git diff --exit-code
 
-      - name: make lint
+      - name: make
         run: |
           make lint test
           git diff --exit-code
+
+      # - name: make yaegi_test
+        # run: |
+          # make yaegi_test
