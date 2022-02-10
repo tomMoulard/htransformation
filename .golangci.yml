@@ -1,0 +1,12 @@
+linters:
+  enable-all: true
+  disable:
+    - gochecknoglobals
+    - tagliatelle # Breaking: 'Rule' tag -> 'rule'
+
+issues:
+  exclude-rules:
+    - path: (.+)_test.go
+      linters:
+        - funlen
+        - exhaustivestruct

@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/tomMoulard/htransformation.svg?branch=main)](https://travis-ci.com/tomMoulard/htransformation)
 
-This plugin allow to change on the fly header's value of a request.
+This plugin allows changing on the fly header's value of a request.
 
 ## Dev `traefik.yml` configuration file for traefik
 
@@ -37,7 +37,7 @@ $ docker run -d --network host containous/whoami -port 5000
 ```
 ## How to use
 
-To choose a Rule you have to fill the `Type` field with either
+To choose a Rule, you have to fill the `Type` field with either
 - 'Rename'  : to rename a header
 - 'Set'     : to Set a header
 - 'Del'     : to Delete a header
@@ -84,7 +84,7 @@ X-Traefik-merged: 0 # A value from old headers
 
 ### Set
 
-A Set rule will either create or replace the header and value (if it already exist)
+A Set rule will either create or replace the header and value (if it already exists)
 
 A rule Set need 2 arguments
 - `Header`, the header you want to create
@@ -119,7 +119,7 @@ A rule Delete need 1 arguments
 
 ### Join
 
-A Join rule will concat the values of the existing header with the new one. If the header doesnt exist, it'll do nothing 
+A Join rule will concatenate the values of the existing header with the new one. If the header doesn't exist, it'll do nothing
 
 It needs 3 arguments
 - `Header`, the header you want to join
@@ -145,12 +145,12 @@ Cache-Control: gzip, deflate
 Cache-Control: gzip, deflate,Foo,Bar
 ```
 
-### RewriteValueRule
+### RewriteValue Rule
 
-A RewriteValueRule will replace the values of the headers identified by a matching regex with the provided value.
+A RewriteValue Rule will replace the values of the headers identified by a matching regex with the provided value.
 
 It needs 2 arguments
-- `Header`, the header or regex identifying the headers you want to modify
+- `Header`, the header or regex identifying the headers you want to change
 - `Value`, the new value of the headers
 
 ```yaml
@@ -190,7 +190,7 @@ The rules will be evaluated in the order of definition
   Value: 'False'
   Type: 'Set'
 ```
-Will firstly set the header `X-Custom-2` to 'True', then delete it and lastly set it again but with `False`
+Will set the header `X-Custom-2` to 'True', then delete it and set it again but with `False`
 
 # Authors
 | Tom Moulard | Clément David | Martin Huvelle | Alexandre Bossut-Lasry |

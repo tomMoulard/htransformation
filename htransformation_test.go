@@ -9,209 +9,203 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	plug "github.com/tommoulard/htransformation"
+	"github.com/tommoulard/htransformation/pkg/types"
 )
 
-func TestHeaderRules(t *testing.T) {
+func TestValidation(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
-		rule    plug.Rule
-		headers map[string]string
-		want    map[string]string
+		config  *plug.Config
+		wantErr bool
 	}{
 		{
-			name: "[Rename] no transformation",
-			rule: plug.Rule{
-				Type:   "Rename",
-				Header: "not-existing",
-			},
-			headers: map[string]string{
-				"Foo": "Bar",
-			},
-			want: map[string]string{
-				"Foo": "Bar",
-			},
+			name:    "no rules",
+			config:  &plug.Config{},
+			wantErr: false,
 		},
 		{
-			name: "[Rename] one transformation",
-			rule: plug.Rule{
-				Type:   "Rename",
-				Header: "Test",
-				Value:  "X-Testing",
-			},
-			headers: map[string]string{
-				"Foo":  "Bar",
-				"Test": "Success",
-			},
-			want: map[string]string{
-				"Foo":       "Bar",
-				"X-Testing": "Success",
-			},
-		},
-		{
-			name: "[Rename] Deletion",
-			rule: plug.Rule{
-				Type:   "Rename",
-				Header: "Test",
-			},
-			headers: map[string]string{
-				"Foo":  "Bar",
-				"Test": "Success",
-			},
-			want: map[string]string{
-				"Foo":  "Bar",
-				"Test": "",
-			},
-		},
-		{
-			name: "[Set] Set one simple",
-			rule: plug.Rule{
-				Type:   "Set",
-				Header: "X-Test",
-				Value:  "Tested",
-			},
-			headers: map[string]string{
-				"Foo": "Bar",
-			},
-			want: map[string]string{
-				"Foo":    "Bar",
-				"X-Test": "Tested",
-			},
-		},
-		{
-			name: "[Set] Set already existing simple",
-			rule: plug.Rule{
-				Type:   "Set",
-				Header: "X-Test",
-				Value:  "Tested",
-			},
-			headers: map[string]string{
-				"Foo":    "Bar",
-				"X-Test": "Bar",
-			},
-			want: map[string]string{
-				"Foo":    "Bar",
-				"X-Test": "Tested", // Override
-			},
-		},
-		{
-			name: "[Del] Remove not existing header",
-			rule: plug.Rule{
-				Type:   "Del",
-				Header: "X-Test",
-			},
-			headers: map[string]string{
-				"Foo": "Bar",
-			},
-			want: map[string]string{
-				"Foo": "Bar",
-			},
-		},
-		{
-			name: "[Del] Remove one header",
-			rule: plug.Rule{
-				Type:   "Del",
-				Header: "X-Test",
-			},
-			headers: map[string]string{
-				"Foo":    "Bar",
-				"X-Test": "Bar",
-			},
-			want: map[string]string{
-				"Foo": "Bar",
-			},
-		},
-		{
-			name: "[Join] Join two headers simple value",
-			rule: plug.Rule{
-				Type:   "Join",
-				Sep:    ",",
-				Header: "X-Test",
-				Values: []string{
-					"Tested",
+			name: "no rules type",
+			config: &plug.Config{
+				Rules: []types.Rule{
+					{
+						Name: "no rule",
+					},
 				},
 			},
-			headers: map[string]string{
-				"Foo":    "Bar",
-				"X-Test": "Bar",
-			},
-			want: map[string]string{
-				"Foo":    "Bar",
-				"X-Test": "Bar,Tested",
-			},
+			wantErr: true,
 		},
 		{
-			name: "[Join] Join two headers multiple value",
-			rule: plug.Rule{
-				Type:   "Join",
-				Sep:    ",",
-				Header: "X-Test",
-				Values: []string{
-					"Tested",
-					"Compiled",
-					"Working",
+			name: "invalid rules type",
+			config: &plug.Config{
+				Rules: []types.Rule{
+					{
+						Name: "invalid rule",
+						Type: "THIS IS NOT A VALID RULE TYPE",
+					},
 				},
 			},
-			headers: map[string]string{
-				"Foo":    "Bar",
-				"X-Test": "Bar",
-			},
-			want: map[string]string{
-				"Foo":    "Bar",
-				"X-Test": "Bar,Tested,Compiled,Working",
-			},
+			wantErr: true,
 		},
 		{
-			name: "[ValueRewriteRule] one transformation",
-			rule: plug.Rule{
-				Type:         "RewriteValueRule",
-				Header:       "F(.*)",
-				Value:        `X-(\d*)-(.*)`,
-				ValueReplace: "Y-$2-$1",
+			name: "missing header",
+			config: &plug.Config{
+				Rules: []types.Rule{
+					{
+						Name: "rule with no header",
+						Type: types.Join,
+					},
+				},
 			},
-			headers: map[string]string{
-				"Foo": "X-12-Test",
-			},
-			want: map[string]string{
-				"Foo": "Y-Test-12",
-			},
+			wantErr: true,
 		},
 		{
-			// the value doesn't match, we leave the value as is
-			name: "[ValueRewriteRule] no match",
-			rule: plug.Rule{
-				Type:         "RewriteValueRule",
-				Header:       "F(.*)",
-				Value:        `(\d*)`,
-				ValueReplace: "Y-$2-$1",
+			name: "missing type",
+			config: &plug.Config{
+				Rules: []types.Rule{
+					{
+						Name:   "rule with no type",
+						Header: "not-empty",
+					},
+				},
 			},
-			headers: map[string]string{
-				"Foo": "X-Test",
-			},
-			want: map[string]string{
-				"Foo": "X-Test",
-			},
+			wantErr: true,
 		},
 		{
-			// no placeholder but the value matches, we replace the value
-			name: "[ValueRewriteRule] no placeholder",
-			rule: plug.Rule{
-				Type:         "RewriteValueRule",
-				Header:       "F(.*)",
-				Value:        `X-(.*)`,
-				ValueReplace: "Y-Bla",
+			name: "join rule without value",
+			config: &plug.Config{
+				Rules: []types.Rule{
+					{
+						Name:   "join rule with no value",
+						Header: "not-empty",
+						Sep:    "not-empty",
+						Type:   types.Join,
+					},
+				},
 			},
-			headers: map[string]string{
-				"Foo": "X-Test",
+			wantErr: true,
+		},
+		{
+			name: "join rule without separator",
+			config: &plug.Config{
+				Rules: []types.Rule{
+					{
+						Name:   "join rule with no sep",
+						Header: "not-empty",
+						Value:  "not-empty",
+						Type:   types.Join,
+					},
+				},
 			},
-			want: map[string]string{
-				"Foo": "Y-Bla",
+			wantErr: true,
+		},
+		{
+			name: "rewrite rule without ValueReplace",
+			config: &plug.Config{
+				Rules: []types.Rule{
+					{
+						Name:   "rewrite rule with no ValueReplace",
+						Type:   types.RewriteValueRule,
+						Header: "not-empty",
+					},
+				},
 			},
+			wantErr: true,
+		},
+		{
+			name: "valid rule",
+			config: &plug.Config{
+				Rules: []types.Rule{
+					{
+						Name:   "delete rule",
+						Header: "not-empty",
+						Type:   types.Delete,
+					},
+					{
+						Name:   "join Rule",
+						Header: "not-empty",
+						Values: []string{"not-empty"},
+						Sep:    "not-empty",
+						Type:   types.Join,
+					},
+					{
+						Name:   "rename rule",
+						Header: "not-empty",
+						Value:  "not-empty",
+						Type:   types.Rename,
+					},
+					{
+						Name:         "rewrite rule",
+						Header:       "not-empty",
+						ValueReplace: "not-empty",
+						Value:        "not-empty",
+						Type:         types.RewriteValueRule,
+					},
+					{
+						Name:   "set rule",
+						Header: "not-empty",
+						Value:  "not-empty",
+						Type:   types.Set,
+					},
+				},
+			},
+			wantErr: false,
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := plug.New(context.Background(), nil, test.config, "test")
+			if test.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestHeaderRules(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		rule    types.Rule
+		wantErr bool
+	}{
+		{
+			name: "set rule",
+			rule: types.Rule{
+				Name:   "set rule",
+				Header: "not-empty",
+				Value:  "not-empty",
+				Type:   types.Set,
+			},
+			wantErr: false,
+		},
+		{
+			name: "missing handler rule",
+			rule: types.Rule{
+				Name:   "invalid rule",
+				Header: "not-empty",
+				Value:  "not-empty",
+				Type:   "THIS IS NOT A VALID RULE",
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			cfg := plug.CreateConfig()
-			cfg.Rules = []plug.Rule{tt.rule}
+			cfg.Rules = []types.Rule{test.rule}
 
 			ctx := context.Background()
 			next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
@@ -224,14 +218,15 @@ func TestHeaderRules(t *testing.T) {
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
 			require.NoError(t, err)
 
-			for hName, hVal := range tt.headers {
-				req.Header.Add(hName, hVal)
-			}
-
 			handler.ServeHTTP(recorder, req)
+			result := recorder.Result()
+			statusCode := result.StatusCode
+			require.NoError(t, result.Body.Close())
 
-			for hName, hVal := range tt.want {
-				assert.Equal(t, hVal, req.Header.Get(hName))
+			if test.wantErr {
+				assert.Equal(t, http.StatusInternalServerError, statusCode)
+			} else {
+				assert.Equal(t, http.StatusOK, statusCode)
 			}
 		})
 	}
