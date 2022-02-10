@@ -58,6 +58,77 @@ func TestJoinHandler(t *testing.T) {
 				"X-Test": "Bar,Tested,Compiled,Working",
 			},
 		},
+		{
+			name: "Join two headers simple value",
+			rule: types.Rule{
+				Type:   "Join",
+				Sep:    ",",
+				Header: "X-Test",
+				Values: []string{
+					"^X-Source",
+				},
+				HeaderPrefix: "^",
+			},
+			requestHeaders: map[string]string{
+				"Foo":      "Bar",
+				"X-Source": "Tested",
+				"X-Test":   "Bar",
+			},
+			want: map[string]string{
+				"Foo":      "Bar",
+				"X-Source": "Tested",
+				"X-Test":   "Bar,Tested",
+			},
+		},
+		{
+			name: "Join two headers multiple value",
+			rule: types.Rule{
+				Type:   "Join",
+				Sep:    ",",
+				Header: "X-Test",
+				Values: []string{
+					"^X-Source-1",
+					"Compiled",
+					"^X-Source-3",
+				},
+				HeaderPrefix: "^",
+			},
+			requestHeaders: map[string]string{
+				"Foo":        "Bar",
+				"X-Test":     "Bar",
+				"X-Source-1": "Tested",
+				"X-Source-3": "Working",
+			},
+			want: map[string]string{
+				"Foo":        "Bar",
+				"X-Test":     "Bar,Tested,Compiled,Working",
+				"X-Source-1": "Tested",
+				"X-Source-3": "Working",
+			},
+		},
+		{
+			name: "Join two headers multiple value with itself",
+			rule: types.Rule{
+				Type:   "Join",
+				Sep:    ",",
+				Header: "X-Test",
+				Values: []string{
+					"second",
+					"^X-Test",
+					"^X-Source-3",
+				},
+				HeaderPrefix: "^",
+			},
+			requestHeaders: map[string]string{
+				"Foo":        "Bar",
+				"X-Test":     "test",
+				"X-Source-3": "third",
+			},
+			want: map[string]string{
+				"Foo":    "Bar",
+				"X-Test": "test,second,test,third",
+			},
+		},
 	}
 
 	for _, test := range tests {
