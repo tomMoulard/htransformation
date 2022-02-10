@@ -1,5 +1,9 @@
 package types
 
+import (
+	"regexp"
+)
+
 // RuleType define the possible types of rules.
 type RuleType string
 
@@ -14,17 +18,16 @@ const (
 	Rename RuleType = "Rename"
 	// RewriteValueRule will replace the value of a header with the provided value.
 	RewriteValueRule RuleType = "RewriteValueRule"
-	// EmptyType defines an empty type rule.
-	EmptyType RuleType = ""
 )
 
 // Rule struct so that we get traefik config.
 type Rule struct {
-	Name         string   `yaml:"Name"`
-	Header       string   `yaml:"Header"`
-	Value        string   `yaml:"Value"`
-	ValueReplace string   `yaml:"ValueReplace"`
-	Values       []string `yaml:"Values"`
-	Sep          string   `yaml:"Sep"`
-	Type         RuleType `yaml:"Type"`
+	Header       string         `yaml:"Header"` // header value
+	Name         string         `yaml:"Name"`   // rule name
+	Regexp       *regexp.Regexp `yaml:"-"`      // Used for rewrite, rename header matching
+	Sep          string         `yaml:"Sep"`    // separator to use for join
+	Type         RuleType       `yaml:"Type"`   // Differentiate rule types
+	Value        string         `yaml:"Value"`
+	ValueReplace string         `yaml:"ValueReplace"` // value used as replacement in rewrite
+	Values       []string       `yaml:"Values"`       // values to join
 }

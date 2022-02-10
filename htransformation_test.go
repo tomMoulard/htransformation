@@ -187,16 +187,6 @@ func TestHeaderRules(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "missing handler rule",
-			rule: types.Rule{
-				Name:   "invalid rule",
-				Header: "not-empty",
-				Value:  "not-empty",
-				Type:   "THIS IS NOT A VALID RULE",
-			},
-			wantErr: false,
-		},
 	}
 
 	for _, test := range tests {

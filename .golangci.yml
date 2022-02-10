@@ -10,3 +10,7 @@ issues:
       linters:
         - funlen
         - exhaustivestruct
+
+linters-settings:
+  cyclop:
+    max-complexity: 11

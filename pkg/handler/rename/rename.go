@@ -1,21 +1,14 @@
 package rename
 
 import (
-	"fmt"
 	"net/http"
-	"regexp"
 
 	"github.com/tommoulard/htransformation/pkg/types"
 )
 
-func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) error {
+func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) {
 	for headerName, headerValues := range req.Header {
-		matched, err := regexp.Match(rule.Header, []byte(headerName))
-		if err != nil {
-			return fmt.Errorf("RenameHandler error: %w", err)
-		}
-
-		if !matched {
+		if matched := rule.Regexp.Match([]byte(headerName)); !matched {
 			continue
 		}
 
@@ -25,6 +18,4 @@ func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) error {
 			req.Header.Set(rule.Value, val)
 		}
 	}
-
-	return nil
 }

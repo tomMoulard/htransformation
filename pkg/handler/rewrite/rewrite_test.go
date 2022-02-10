@@ -3,6 +3,7 @@ package rewrite_test
 import (
 	"context"
 	"net/http"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -95,8 +96,9 @@ func TestRewriteHandler(t *testing.T) {
 				req.Header.Add(hName, hVal)
 			}
 
-			err = rewrite.Handle(nil, req, test.rule)
-			require.NoError(t, err)
+			test.rule.Regexp = regexp.MustCompile(test.rule.Header)
+
+			rewrite.Handle(nil, req, test.rule)
 
 			for hName, hVal := range test.want {
 				assert.Equal(t, hVal, req.Header.Get(hName))

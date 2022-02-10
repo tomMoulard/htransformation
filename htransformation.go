@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/tommoulard/htransformation/pkg/handler/deleter"
 	"github.com/tommoulard/htransformation/pkg/handler/join"
@@ -33,7 +34,7 @@ func CreateConfig() *Config {
 	}
 }
 
-var ruleHandlers = map[types.RuleType]func(http.ResponseWriter, *http.Request, types.Rule) error{
+var ruleHandlers = map[types.RuleType]func(http.ResponseWriter, *http.Request, types.Rule){
 	types.Delete:           deleter.Handle,
 	types.Join:             join.Handle,
 	types.Rename:           rename.Handle,
@@ -45,11 +46,13 @@ var errMissingRequiredFields = errors.New("missing required fields")
 
 var errInvalidRuleType = errors.New("invalid rule type")
 
+var errInvalidRegexp = errors.New("invalid regexp")
+
 // New instantiates and returns the required components used to handle an HTTP request.
 func New(_ context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	for _, rule := range config.Rules {
-		if rule.Header == "" || rule.Type == types.EmptyType {
-			return nil, fmt.Errorf("%w for rule %q", errMissingRequiredFields, rule.Name)
+		if _, ok := ruleHandlers[rule.Type]; !ok {
+			return nil, fmt.Errorf("%w: %s", errInvalidRuleType, rule.Name)
 		}
 
 		if rule.Type == types.Join && (len(rule.Values) == 0 || rule.Sep == "") {
@@ -60,8 +63,13 @@ func New(_ context.Context, next http.Handler, config *Config, name string) (htt
 			return nil, fmt.Errorf("%w for rule %q", errMissingRequiredFields, rule.Name)
 		}
 
-		if _, ok := ruleHandlers[rule.Type]; !ok {
-			return nil, fmt.Errorf("%w: %s", errInvalidRuleType, rule.Name)
+		if rule.Type == types.Rename || rule.Type == types.RewriteValueRule {
+			var err error
+			rule.Regexp, err = regexp.Compile(rule.Header)
+
+			if err != nil {
+				return nil, fmt.Errorf("%w: %s", errInvalidRegexp, rule.Name)
+			}
 		}
 	}
 
@@ -81,11 +89,7 @@ func (u *HeadersTransformation) ServeHTTP(responseWriter http.ResponseWriter, re
 			continue
 		}
 
-		if err := h(responseWriter, request, rule); err != nil {
-			http.Error(responseWriter, err.Error(), http.StatusInternalServerError)
-
-			return
-		}
+		h(responseWriter, request, rule)
 	}
 
 	u.next.ServeHTTP(responseWriter, request)

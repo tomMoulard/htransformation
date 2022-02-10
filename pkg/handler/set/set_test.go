@@ -64,8 +64,7 @@ func TestSetHandler(t *testing.T) {
 				req.Header.Add(hName, hVal)
 			}
 
-			err = set.Handle(nil, req, test.rule)
-			require.NoError(t, err)
+			set.Handle(nil, req, test.rule)
 
 			for hName, hVal := range test.want {
 				assert.Equal(t, hVal, req.Header.Get(hName))

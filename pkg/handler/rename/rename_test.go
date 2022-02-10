@@ -3,6 +3,7 @@ package rename_test
 import (
 	"context"
 	"net/http"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -76,8 +77,9 @@ func TestRenameHandler(t *testing.T) {
 				req.Header.Add(hName, hVal)
 			}
 
-			err = rename.Handle(nil, req, test.rule)
-			require.NoError(t, err)
+			test.rule.Regexp = regexp.MustCompile(test.rule.Header)
+
+			rename.Handle(nil, req, test.rule)
 
 			for hName, hVal := range test.want {
 				assert.Equal(t, hVal, req.Header.Get(hName))
