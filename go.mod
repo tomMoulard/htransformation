@@ -1,4 +1,4 @@
-module github.com/tommoulard/htransformation
+module github.com/tomMoulard/htransformation
 
 go 1.13
 
