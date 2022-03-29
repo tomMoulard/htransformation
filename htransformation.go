@@ -50,7 +50,7 @@ var errInvalidRegexp = errors.New("invalid regexp")
 
 // New instantiates and returns the required components used to handle an HTTP request.
 func New(_ context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
-	for _, rule := range config.Rules {
+	for i, rule := range config.Rules {
 		if _, ok := ruleHandlers[rule.Type]; !ok {
 			return nil, fmt.Errorf("%w: %s", errInvalidRuleType, rule.Name)
 		}
@@ -65,7 +65,7 @@ func New(_ context.Context, next http.Handler, config *Config, name string) (htt
 
 		if rule.Type == types.Rename || rule.Type == types.RewriteValueRule {
 			var err error
-			rule.Regexp, err = regexp.Compile(rule.Header)
+			config.Rules[i].Regexp, err = regexp.Compile(rule.Header)
 
 			if err != nil {
 				return nil, fmt.Errorf("%w: %s", errInvalidRegexp, rule.Name)

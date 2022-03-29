@@ -2,6 +2,7 @@ linters:
   enable-all: true
   disable:
     - gochecknoglobals
+    - varnamelen # useless
     - tagliatelle # Breaking: 'Rule' tag -> 'rule'
 
 issues:

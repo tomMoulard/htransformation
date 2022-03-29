@@ -173,9 +173,10 @@ func TestHeaderRules(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name    string
-		rule    types.Rule
-		wantErr bool
+		name             string
+		rule             types.Rule
+		wantErr          bool
+		additionalHeader map[string]string
 	}{
 		{
 			name: "set rule",
@@ -184,6 +185,33 @@ func TestHeaderRules(t *testing.T) {
 				Header: "not-empty",
 				Value:  "not-empty",
 				Type:   types.Set,
+			},
+			wantErr: false,
+		},
+		{
+			name: "rename rule",
+			rule: types.Rule{
+				Name:   "rename rule",
+				Header: "not-empty",
+				Value:  "not-empty",
+				Type:   types.Rename,
+			},
+			additionalHeader: map[string]string{
+				"Referer": "http://foo.bar",
+			},
+			wantErr: false,
+		},
+		{
+			name: "rewrite rule",
+			rule: types.Rule{
+				Name:         "rewrite rule",
+				Header:       "not-empty",
+				Value:        "not-empty",
+				ValueReplace: "not-empty",
+				Type:         types.RewriteValueRule,
+			},
+			additionalHeader: map[string]string{
+				"Referer": "http://foo.bar",
 			},
 			wantErr: false,
 		},
@@ -207,6 +235,10 @@ func TestHeaderRules(t *testing.T) {
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
 			require.NoError(t, err)
+
+			for key, value := range test.additionalHeader {
+				req.Header.Set(key, value)
+			}
 
 			handler.ServeHTTP(recorder, req)
 			result := recorder.Result()
