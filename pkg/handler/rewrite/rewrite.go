@@ -24,6 +24,8 @@ func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) {
 
 			if len(captures) == 0 || captures[0] == "" {
 				req.Header.Add(headerName, headerValue)
+
+				continue
 			}
 
 			for j, capture := range captures[1:] {

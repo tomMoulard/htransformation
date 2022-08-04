@@ -67,6 +67,20 @@ func TestRewriteHandler(t *testing.T) {
 			},
 		},
 		{
+			name: "no header match and no value match",
+			rule: types.Rule{
+				Header:       "F(.*)",
+				Value:        `toto`,
+				ValueReplace: "Y-$2-$1",
+			},
+			requestHeaders: map[string]string{
+				"Foo": "X-Test",
+			},
+			want: map[string]string{
+				"Foo": "X-Test",
+			},
+		},
+		{
 			// no placeholder but the value matches, we replace the value
 			name: "no placeholder",
 			rule: types.Rule{
