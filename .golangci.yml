@@ -1,9 +1,14 @@
 linters:
   enable-all: true
   disable:
+    - exhaustivestruct # deprecated
     - gochecknoglobals
-    - varnamelen # useless
+    - golint # deprecated
+    - interfacer # deprecated
+    - maligned # deprecated
+    - scopelint # deprecated
     - tagliatelle # Breaking: 'Rule' tag -> 'rule'
+    - varnamelen # useless
 
 issues:
   exclude-rules:
@@ -11,6 +16,7 @@ issues:
       linters:
         - funlen
         - exhaustivestruct
+        - exhaustruct
 
 linters-settings:
   cyclop:
