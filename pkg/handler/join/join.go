@@ -8,16 +8,17 @@ import (
 )
 
 func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) {
-	if val, ok := req.Header[rule.Header]; ok {
-		tmpVal := val[0]
-
-		for _, value := range rule.Values {
-			tmpVal += rule.Sep + getValue(value, rule.HeaderPrefix, req)
-		}
-
-		req.Header.Del(rule.Header)
-		req.Header.Add(rule.Header, tmpVal)
+	val, ok := req.Header[rule.Header]
+	if !ok {
+		return
 	}
+
+	newHeaderVal := val[0]
+	for _, value := range rule.Values {
+		newHeaderVal += rule.Sep + getValue(value, rule.HeaderPrefix, req)
+	}
+
+	req.Header.Set(rule.Header, newHeaderVal)
 }
 
 // getValue checks if prefix exists, the given prefix is present,
