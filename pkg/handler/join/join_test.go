@@ -129,6 +129,25 @@ func TestJoinHandler(t *testing.T) {
 				"X-Test": "test,second,test,third",
 			},
 		},
+		{
+			name: "Join value with same HeaderPrefix",
+			rule: types.Rule{
+				Sep:          ",",
+				Header:       "X-Test",
+				HeaderPrefix: "Tested",
+				Values: []string{
+					"Tested",
+				},
+			},
+			requestHeaders: map[string]string{
+				"Foo":    "Bar",
+				"X-Test": "Bar",
+			},
+			want: map[string]string{
+				"Foo":    "Bar",
+				"X-Test": "Bar,Tested",
+			},
+		},
 	}
 
 	for _, test := range tests {
