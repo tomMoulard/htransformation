@@ -84,12 +84,12 @@ func New(_ context.Context, next http.Handler, config *Config, name string) (htt
 // return nothing if regexp failed.
 func (u *HeadersTransformation) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
 	for _, rule := range u.rules {
-		h, ok := ruleHandlers[rule.Type]
+		ruleHandler, ok := ruleHandlers[rule.Type]
 		if !ok {
 			continue
 		}
 
-		h(responseWriter, request, rule)
+		ruleHandler(responseWriter, request, rule)
 	}
 
 	u.next.ServeHTTP(responseWriter, request)
