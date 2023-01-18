@@ -2,14 +2,20 @@ linters:
   enable-all: true
   disable:
     - exhaustivestruct # deprecated
-    - gochecknoglobals
-    - golint # deprecated
     - interfacer # deprecated
-    - maligned # deprecated
-    - scopelint # deprecated
+    - varcheck # deprecated
+    - nosnakecase # deprecated
     - ifshort # deprecated
-    - tagliatelle # Breaking: 'Rule' tag -> 'rule'
+    - maligned # deprecated
+    - deadcode # deprecated
+    - scopelint # deprecated
+    - structcheck # deprecated
+    - golint # deprecated
+    - gochecknoglobals
     - varnamelen # useless
+    - paralleltest # false positive
+    - tparallel # false positive
+    - tagliatelle # Breaking: 'Rule' tag -> 'rule'
 
 issues:
   exclude-rules:
