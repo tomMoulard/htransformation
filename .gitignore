@@ -20,3 +20,6 @@ plugins-storage
 
 # Vim trash files
 *.swp
+
+# go vendored packages
+vendor/
