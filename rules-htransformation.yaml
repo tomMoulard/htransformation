@@ -19,7 +19,7 @@ http:
   middlewares:
     htransformation:
       plugin:
-        dev:
+        htransformation:
           Rules:
             - Rule:
               Name: 'Header transformation'

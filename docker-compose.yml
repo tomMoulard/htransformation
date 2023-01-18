@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  traefik:
+    image: traefik:v3.0
+    command:
+      - --api.insecure=true
+      - --providers.docker
+      - --providers.file.filename=/rules-htransformation.yaml
+      - --log.level=DEBUG
+      - --experimental.localPlugins.htransformation.moduleName=github.com/tomMoulard/htransformation
+    ports:
+      - 80:80
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./rules-htransformation.yaml:/rules-htransformation.yaml
+      - .:/plugins-local/src/github.com/tomMoulard/htransformation/
+    tty: true
+
+  whoami:
+    image: traefik/whoami # https://github.com/traefik/whoami
+    command: -name whoami
+    labels:
+      traefik.http.routers.whoami.rule: Host(`whoami.localhost`)
