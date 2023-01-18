@@ -18,7 +18,13 @@ To choose a Rule you have to fill the `Type` field with one of the following:
 - 'RewriteValueRule': to rewrite header values
 - 'Set'             : to Set a header
 
-Each Rule can be named with the `Name` field
+Each Rule can be named with the `Name` field.
+
+Each Rule can also be configured to change headers on the request or the
+response by using the `SetOnResponse` configuration.
+If `SetOnResponse` is set to `true`, the header will be changed on the response.
+Otherwise, it will be changed on the request.
+Its default value is `false`.
 
 ### Rename
 
@@ -177,6 +183,7 @@ Foo: X-Test
 # Modified header:
 Foo: Y-Test
 ```
+
 ### Careful
 
 The rules will be evaluated in the order of definition

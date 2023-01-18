@@ -82,7 +82,6 @@ func TestValidation(t *testing.T) {
 		{
 			name: "valid rule",
 			rule: types.Rule{
-				Name:   "Delete Rule",
 				Header: "not-empty",
 				Type:   types.Delete,
 			},

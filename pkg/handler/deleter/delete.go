@@ -10,6 +10,12 @@ func Validate(rule types.Rule) error {
 	return nil
 }
 
-func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) {
+func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
+	if rule.SetOnResponse {
+		rw.Header().Del(rule.Name)
+
+		return
+	}
+
 	req.Header.Del(rule.Header)
 }

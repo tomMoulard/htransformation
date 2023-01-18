@@ -15,5 +15,11 @@ func Validate(rule types.Rule) error {
 }
 
 func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) {
+	if rule.SetOnResponse {
+		req.Header.Set(rule.Header, rule.Value)
+
+		return
+	}
+
 	req.Header.Set(rule.Header, rule.Value)
 }

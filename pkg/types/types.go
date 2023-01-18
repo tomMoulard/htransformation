@@ -32,6 +32,8 @@ type Rule struct {
 	Value        string         `yaml:"Value"`
 	ValueReplace string         `yaml:"ValueReplace"` // value used as replacement in rewrite
 	Values       []string       `yaml:"Values"`       // values to join
+	// if SetOnResponse is true, the header will be changed on the response. It will be on the request otherwise (default).
+	SetOnResponse bool `yaml:"SetOnRequest"`
 }
 
 var ErrMissingRequiredFields = errors.New("missing required fields")

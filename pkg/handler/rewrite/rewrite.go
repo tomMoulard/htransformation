@@ -25,13 +25,22 @@ func Validate(rule types.Rule) error {
 	return nil
 }
 
-func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) {
-	for headerName, headerValues := range req.Header {
+func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
+	headers := req.Header
+	if rule.SetOnResponse {
+		headers = rw.Header()
+	}
+
+	for headerName, headerValues := range headers {
 		if matched := rule.Regexp.Match([]byte(headerName)); !matched {
 			continue
 		}
 
-		req.Header.Del(headerName)
+		if rule.SetOnResponse {
+			rw.Header().Del(headerName)
+		} else {
+			req.Header.Del(headerName)
+		}
 
 		for _, headerValue := range headerValues {
 			replacedHeaderValue := rule.ValueReplace
@@ -39,7 +48,11 @@ func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) {
 			captures := ruleValueRegexp.FindStringSubmatch(headerValue)
 
 			if len(captures) == 0 || captures[0] == "" {
-				req.Header.Add(headerName, headerValue)
+				if rule.SetOnResponse {
+					rw.Header().Set(rule.Header, replacedHeaderValue)
+				} else {
+					req.Header.Set(headerName, headerValue)
+				}
 
 				continue
 			}
@@ -49,7 +62,11 @@ func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) {
 				replacedHeaderValue = strings.ReplaceAll(replacedHeaderValue, placeholder, capture)
 			}
 
-			req.Header.Add(headerName, replacedHeaderValue)
+			if rule.SetOnResponse {
+				rw.Header().Set(rule.Header, replacedHeaderValue)
+			} else {
+				req.Header.Set(headerName, replacedHeaderValue)
+			}
 		}
 	}
 }
