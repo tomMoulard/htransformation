@@ -2,7 +2,6 @@ package htransformation
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -17,9 +16,10 @@ import (
 
 // HeadersTransformation holds the necessary components of a Traefik plugin.
 type HeadersTransformation struct {
-	name  string
-	next  http.Handler
-	rules []types.Rule
+	name         string
+	next         http.Handler
+	rules        []types.Rule
+	ruleHandlers map[types.RuleType]func(http.ResponseWriter, *http.Request, types.Rule)
 }
 
 // Config holds configuration to be passed to the plugin.
@@ -34,49 +34,53 @@ func CreateConfig() *Config {
 	}
 }
 
-var ruleHandlers = map[types.RuleType]func(http.ResponseWriter, *http.Request, types.Rule){
-	types.Delete:           deleter.Handle,
-	types.Join:             join.Handle,
-	types.Rename:           rename.Handle,
-	types.RewriteValueRule: rewrite.Handle,
-	types.Set:              set.Handle,
-}
-
-var errMissingRequiredFields = errors.New("missing required fields")
-
-var errInvalidRuleType = errors.New("invalid rule type")
-
-var errInvalidRegexp = errors.New("invalid regexp")
-
 // New instantiates and returns the required components used to handle an HTTP request.
 func New(_ context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
+	ruleHandlers := map[types.RuleType]func(http.ResponseWriter, *http.Request, types.Rule){
+		types.Delete:           deleter.Handle,
+		types.Join:             join.Handle,
+		types.Rename:           rename.Handle,
+		types.RewriteValueRule: rewrite.Handle,
+		types.Set:              set.Handle,
+	}
+
+	validateRules := map[types.RuleType]func(types.Rule) error{
+		types.Delete:           deleter.Validate,
+		types.Join:             join.Validate,
+		types.Rename:           rename.Validate,
+		types.RewriteValueRule: rewrite.Validate,
+		types.Set:              set.Validate,
+	}
+
 	for i, rule := range config.Rules {
 		if _, ok := ruleHandlers[rule.Type]; !ok {
-			return nil, fmt.Errorf("%w: %s", errInvalidRuleType, rule.Name)
+			return nil, fmt.Errorf("%w: %s", types.ErrInvalidRuleType, rule.Name)
 		}
 
-		if rule.Type == types.Join && (len(rule.Values) == 0 || rule.Sep == "") {
-			return nil, fmt.Errorf("%w for rule %q", errMissingRequiredFields, rule.Name)
+		validate, ok := validateRules[rule.Type]
+		if !ok {
+			continue
 		}
 
-		if rule.Type == types.RewriteValueRule && rule.ValueReplace == "" {
-			return nil, fmt.Errorf("%w for rule %q", errMissingRequiredFields, rule.Name)
+		if err := validate(rule); err != nil {
+			return nil, fmt.Errorf("%w: %s", err, rule.Name)
 		}
 
 		if rule.Type == types.Rename || rule.Type == types.RewriteValueRule {
-			var err error
-			config.Rules[i].Regexp, err = regexp.Compile(rule.Header)
-
-			if err != nil {
-				return nil, fmt.Errorf("%w: %s", errInvalidRegexp, rule.Name)
+			re, err := regexp.Compile(rule.Header)
+			if err != nil { // must be validated before
+				return nil, fmt.Errorf("%w: %s", types.ErrInvalidRegexp, rule.Name)
 			}
+
+			config.Rules[i].Regexp = re
 		}
 	}
 
 	return &HeadersTransformation{
-		name:  name,
-		next:  next,
-		rules: config.Rules,
+		name:         name,
+		next:         next,
+		rules:        config.Rules,
+		ruleHandlers: ruleHandlers,
 	}, nil
 }
 
@@ -84,7 +88,7 @@ func New(_ context.Context, next http.Handler, config *Config, name string) (htt
 // return nothing if regexp failed.
 func (u *HeadersTransformation) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
 	for _, rule := range u.rules {
-		ruleHandler, ok := ruleHandlers[rule.Type]
+		ruleHandler, ok := u.ruleHandlers[rule.Type]
 		if !ok {
 			continue
 		}

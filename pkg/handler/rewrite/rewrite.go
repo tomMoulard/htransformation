@@ -9,6 +9,22 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
+func Validate(rule types.Rule) error {
+	if _, err := regexp.Compile(rule.Header); err != nil {
+		return fmt.Errorf("%s: %w", types.ErrInvalidRegexp.Error(), err)
+	}
+
+	if rule.ValueReplace == "" {
+		return types.ErrMissingRequiredFields
+	}
+
+	if _, err := regexp.Compile(rule.Value); err != nil {
+		return fmt.Errorf("%s: %w", types.ErrInvalidRegexp.Error(), err)
+	}
+
+	return nil
+}
+
 func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) {
 	for headerName, headerValues := range req.Header {
 		if matched := rule.Regexp.Match([]byte(headerName)); !matched {

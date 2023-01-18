@@ -7,6 +7,14 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
+func Validate(rule types.Rule) error {
+	if len(rule.Values) == 0 || rule.Sep == "" {
+		return types.ErrMissingRequiredFields
+	}
+
+	return nil
+}
+
 func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) {
 	val, ok := req.Header[rule.Header]
 	if !ok {

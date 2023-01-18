@@ -72,3 +72,43 @@ func TestSetHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestValidation(t *testing.T) {
+	testCases := []struct {
+		name   string
+		rule   types.Rule
+		expect assert.ErrorAssertionFunc
+	}{
+		{
+			name:   "no rules",
+			expect: assert.Error,
+		},
+		{
+			name: "missing Header value",
+			rule: types.Rule{
+				Type: types.Set,
+			},
+			expect: assert.Error,
+		},
+		{
+			name: "valid rule",
+			rule: types.Rule{
+				Header: "not-empty",
+				Type:   types.Set,
+			},
+			expect: assert.NoError,
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := set.Validate(test.rule)
+			t.Log(err)
+			test.expect(t, err)
+		})
+	}
+}

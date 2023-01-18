@@ -11,7 +11,6 @@ linters:
     - scopelint # deprecated
     - structcheck # deprecated
     - golint # deprecated
-    - gochecknoglobals
     - varnamelen # useless
     - paralleltest # false positive
     - tparallel # false positive

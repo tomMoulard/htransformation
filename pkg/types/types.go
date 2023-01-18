@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"regexp"
 )
 
@@ -32,3 +33,9 @@ type Rule struct {
 	ValueReplace string         `yaml:"ValueReplace"` // value used as replacement in rewrite
 	Values       []string       `yaml:"Values"`       // values to join
 }
+
+var ErrMissingRequiredFields = errors.New("missing required fields")
+
+var ErrInvalidRuleType = errors.New("invalid rule type")
+
+var ErrInvalidRegexp = errors.New("invalid regexp")

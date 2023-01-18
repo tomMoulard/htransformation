@@ -120,3 +120,62 @@ func TestRewriteHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestValidation(t *testing.T) {
+	testCases := []struct {
+		name   string
+		rule   types.Rule
+		expect assert.ErrorAssertionFunc
+	}{
+		{
+			name:   "no rules",
+			expect: assert.Error,
+		},
+		{
+			name: "missing ValueReplace value",
+			rule: types.Rule{
+				Type: types.RewriteValueRule,
+			},
+			expect: assert.Error,
+		},
+		{
+			name: "invalid Header regexp",
+			rule: types.Rule{
+				Header: "(",
+				Type:   types.RewriteValueRule,
+			},
+			expect: assert.Error,
+		},
+		{
+			name: "invalid Value regexp",
+			rule: types.Rule{
+				ValueReplace: "not-empty",
+				Value:        "(",
+				Type:         types.RewriteValueRule,
+			},
+			expect: assert.Error,
+		},
+		{
+			name: "valid rule",
+			rule: types.Rule{
+				Header:       "not-empty",
+				ValueReplace: "not-empty",
+				Value:        "not-empty",
+				Type:         types.RewriteValueRule,
+			},
+			expect: assert.NoError,
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := rewrite.Validate(test.rule)
+			t.Log(err)
+			test.expect(t, err)
+		})
+	}
+}

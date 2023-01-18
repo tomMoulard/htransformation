@@ -13,9 +13,7 @@ import (
 )
 
 func TestValidation(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
+	testCases := []struct {
 		name    string
 		config  *plug.Config
 		wantErr bool
@@ -49,64 +47,11 @@ func TestValidation(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "missing header",
-			config: &plug.Config{
-				Rules: []types.Rule{
-					{
-						Name: "rule with no header",
-						Type: types.Join,
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
 			name: "missing type",
 			config: &plug.Config{
 				Rules: []types.Rule{
 					{
 						Name:   "rule with no type",
-						Header: "not-empty",
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "join rule without value",
-			config: &plug.Config{
-				Rules: []types.Rule{
-					{
-						Name:   "join rule with no value",
-						Header: "not-empty",
-						Sep:    "not-empty",
-						Type:   types.Join,
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "join rule without separator",
-			config: &plug.Config{
-				Rules: []types.Rule{
-					{
-						Name:   "join rule with no sep",
-						Header: "not-empty",
-						Value:  "not-empty",
-						Type:   types.Join,
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "rewrite rule without ValueReplace",
-			config: &plug.Config{
-				Rules: []types.Rule{
-					{
-						Name:   "rewrite rule with no ValueReplace",
-						Type:   types.RewriteValueRule,
 						Header: "not-empty",
 					},
 				},
@@ -130,12 +75,6 @@ func TestValidation(t *testing.T) {
 						Type:   types.Join,
 					},
 					{
-						Name:   "rename rule",
-						Header: "not-empty",
-						Value:  "not-empty",
-						Type:   types.Rename,
-					},
-					{
 						Name:         "rewrite rule",
 						Header:       "not-empty",
 						ValueReplace: "not-empty",
@@ -154,8 +93,9 @@ func TestValidation(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for _, test := range testCases {
 		test := test
+
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -170,9 +110,7 @@ func TestValidation(t *testing.T) {
 }
 
 func TestHeaderRules(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
+	testCases := []struct {
 		name             string
 		rule             types.Rule
 		wantErr          bool
@@ -217,8 +155,9 @@ func TestHeaderRules(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for _, test := range testCases {
 		test := test
+
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 

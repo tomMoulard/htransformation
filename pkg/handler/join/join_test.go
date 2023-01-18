@@ -12,9 +12,7 @@ import (
 )
 
 func TestJoinHandler(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
+	testCases := []struct {
 		name           string
 		rule           types.Rule
 		requestHeaders map[string]string
@@ -150,7 +148,7 @@ func TestJoinHandler(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for _, test := range testCases {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -168,6 +166,66 @@ func TestJoinHandler(t *testing.T) {
 			for hName, hVal := range test.want {
 				assert.Equal(t, hVal, req.Header.Get(hName))
 			}
+		})
+	}
+}
+
+func TestValidation(t *testing.T) {
+	testCases := []struct {
+		name   string
+		rule   types.Rule
+		expect assert.ErrorAssertionFunc
+	}{
+		{
+			name:   "no rules",
+			expect: assert.Error,
+		},
+		{
+			name: "missing header",
+			rule: types.Rule{
+				Type: types.Join,
+			},
+			expect: assert.Error,
+		},
+		{
+			name: "without value",
+			rule: types.Rule{
+				Header: "not-empty",
+				Sep:    "not-empty",
+				Type:   types.Join,
+			},
+			expect: assert.Error,
+		},
+		{
+			name: "join rule without separator",
+			rule: types.Rule{
+				Header: "not-empty",
+				Value:  "not-empty",
+				Type:   types.Join,
+			},
+			expect: assert.Error,
+		},
+		{
+			name: "valid rule",
+			rule: types.Rule{
+				Header: "not-empty",
+				Values: []string{"not-empty"},
+				Sep:    "not-empty",
+				Type:   types.Join,
+			},
+			expect: assert.NoError,
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := join.Validate(test.rule)
+			t.Log(err)
+			test.expect(t, err)
 		})
 	}
 }

@@ -87,3 +87,53 @@ func TestRenameHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestValidation(t *testing.T) {
+	testCases := []struct {
+		name   string
+		rule   types.Rule
+		expect assert.ErrorAssertionFunc
+	}{
+		{
+			name:   "no rules",
+			expect: assert.Error,
+		},
+		{
+			name: "missing header value",
+			rule: types.Rule{
+				Header: ".",
+				Type:   types.Rename,
+			},
+			expect: assert.Error,
+		},
+		{
+			name: "invalid regexp",
+			rule: types.Rule{
+				Header: "(",
+				Type:   types.Rename,
+			},
+			expect: assert.Error,
+		},
+		{
+			name: "valid rule",
+			rule: types.Rule{
+				Header: "not-empty",
+				Value:  "not-empty",
+				Type:   types.Rename,
+			},
+			expect: assert.NoError,
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := rename.Validate(test.rule)
+			t.Log(err)
+			test.expect(t, err)
+		})
+	}
+}
