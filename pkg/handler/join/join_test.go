@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/tomMoulard/htransformation/pkg/handler/join"
+	"github.com/tomMoulard/htransformation/pkg/tests/assert"
+	"github.com/tomMoulard/htransformation/pkg/tests/require"
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
@@ -172,20 +172,20 @@ func TestJoinHandler(t *testing.T) {
 
 func TestValidation(t *testing.T) {
 	testCases := []struct {
-		name   string
-		rule   types.Rule
-		expect assert.ErrorAssertionFunc
+		name    string
+		rule    types.Rule
+		wantErr bool
 	}{
 		{
-			name:   "no rules",
-			expect: assert.Error,
+			name:    "no rules",
+			wantErr: true,
 		},
 		{
 			name: "missing header",
 			rule: types.Rule{
 				Type: types.Join,
 			},
-			expect: assert.Error,
+			wantErr: true,
 		},
 		{
 			name: "without value",
@@ -194,7 +194,7 @@ func TestValidation(t *testing.T) {
 				Sep:    "not-empty",
 				Type:   types.Join,
 			},
-			expect: assert.Error,
+			wantErr: true,
 		},
 		{
 			name: "join rule without separator",
@@ -203,7 +203,7 @@ func TestValidation(t *testing.T) {
 				Value:  "not-empty",
 				Type:   types.Join,
 			},
-			expect: assert.Error,
+			wantErr: true,
 		},
 		{
 			name: "valid rule",
@@ -213,7 +213,7 @@ func TestValidation(t *testing.T) {
 				Sep:    "not-empty",
 				Type:   types.Join,
 			},
-			expect: assert.NoError,
+			wantErr: false,
 		},
 	}
 
@@ -225,7 +225,11 @@ func TestValidation(t *testing.T) {
 
 			err := join.Validate(test.rule)
 			t.Log(err)
-			test.expect(t, err)
+			if test.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }

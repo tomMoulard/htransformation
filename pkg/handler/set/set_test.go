@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/tomMoulard/htransformation/pkg/handler/set"
+	"github.com/tomMoulard/htransformation/pkg/tests/assert"
+	"github.com/tomMoulard/htransformation/pkg/tests/require"
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
@@ -75,20 +75,20 @@ func TestSetHandler(t *testing.T) {
 
 func TestValidation(t *testing.T) {
 	testCases := []struct {
-		name   string
-		rule   types.Rule
-		expect assert.ErrorAssertionFunc
+		name    string
+		rule    types.Rule
+		wantErr bool
 	}{
 		{
-			name:   "no rules",
-			expect: assert.Error,
+			name:    "no rules",
+			wantErr: true,
 		},
 		{
 			name: "missing Header value",
 			rule: types.Rule{
 				Type: types.Set,
 			},
-			expect: assert.Error,
+			wantErr: true,
 		},
 		{
 			name: "valid rule",
@@ -96,7 +96,7 @@ func TestValidation(t *testing.T) {
 				Header: "not-empty",
 				Type:   types.Set,
 			},
-			expect: assert.NoError,
+			wantErr: false,
 		},
 	}
 
@@ -108,7 +108,11 @@ func TestValidation(t *testing.T) {
 
 			err := set.Validate(test.rule)
 			t.Log(err)
-			test.expect(t, err)
+			if test.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }

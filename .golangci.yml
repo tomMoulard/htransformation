@@ -11,6 +11,9 @@ linters:
     - scopelint # deprecated
     - structcheck # deprecated
     - golint # deprecated
+    - rowserrcheck # deprecated
+    - sqlclosecheck # deprecated
+    - wastedassign # deprecated
     - varnamelen # useless
     - paralleltest # false positive
     - tparallel # false positive

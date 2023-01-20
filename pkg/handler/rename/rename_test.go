@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/tomMoulard/htransformation/pkg/handler/rename"
+	"github.com/tomMoulard/htransformation/pkg/tests/assert"
+	"github.com/tomMoulard/htransformation/pkg/tests/require"
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
@@ -90,13 +90,13 @@ func TestRenameHandler(t *testing.T) {
 
 func TestValidation(t *testing.T) {
 	testCases := []struct {
-		name   string
-		rule   types.Rule
-		expect assert.ErrorAssertionFunc
+		name    string
+		rule    types.Rule
+		wantErr bool
 	}{
 		{
-			name:   "no rules",
-			expect: assert.Error,
+			name:    "no rules",
+			wantErr: true,
 		},
 		{
 			name: "missing header value",
@@ -104,7 +104,7 @@ func TestValidation(t *testing.T) {
 				Header: ".",
 				Type:   types.Rename,
 			},
-			expect: assert.Error,
+			wantErr: true,
 		},
 		{
 			name: "invalid regexp",
@@ -112,7 +112,7 @@ func TestValidation(t *testing.T) {
 				Header: "(",
 				Type:   types.Rename,
 			},
-			expect: assert.Error,
+			wantErr: true,
 		},
 		{
 			name: "valid rule",
@@ -121,7 +121,7 @@ func TestValidation(t *testing.T) {
 				Value:  "not-empty",
 				Type:   types.Rename,
 			},
-			expect: assert.NoError,
+			wantErr: false,
 		},
 	}
 
@@ -133,7 +133,11 @@ func TestValidation(t *testing.T) {
 
 			err := rename.Validate(test.rule)
 			t.Log(err)
-			test.expect(t, err)
+			if test.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }

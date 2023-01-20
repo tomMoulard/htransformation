@@ -69,6 +69,6 @@ jobs:
           make lint test
           git diff --exit-code
 
-      # - name: make yaegi_test
-        # run: |
-          # make yaegi_test
+      - name: make yaegi_test
+        run: |
+          make yaegi_test
