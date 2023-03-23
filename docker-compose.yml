@@ -23,3 +23,4 @@ services:
     command: -name whoami
     labels:
       traefik.http.routers.whoami.rule: Host(`whoami.localhost`)
+      traefik.http.routers.whoami.middlewares: htransformation@file
