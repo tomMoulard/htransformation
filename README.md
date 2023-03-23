@@ -76,12 +76,12 @@ A rule Set need 2 arguments
 - `Value`, the value of the new header
 
 ```yaml
-# Example Join
+# Example 
 - Rule:
       Name: 'Set Cache-Control'
       Header: 'Cache-Control'
       Value: 'Foo'
-      Type: 'Join'
+      Type: 'Set'
 ```
 
 ```yaml
