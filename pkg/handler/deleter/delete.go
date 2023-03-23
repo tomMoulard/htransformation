@@ -6,7 +6,7 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
-func Validate(rule types.Rule) error {
+func Validate(types.Rule) error {
 	return nil
 }
 
