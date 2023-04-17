@@ -13,7 +13,7 @@ fmt:
 	gofmt -l -w $(SRC)
 
 test:
-	go test -race -cover -count=1 ./...
+	go test -race -cover ./...
 
 yaegi_test:
 	yaegi test .
