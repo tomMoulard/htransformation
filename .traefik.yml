@@ -8,7 +8,7 @@ summary: 'Transform some headers with some other ones, see https://github.com/tr
 testData:
   Rules:
     - Rule:
-      Name: 'Header transformation'
+      Name: 'Header renaming'
       Header: 'X-Traefik-*'
       Value: 'X-custom'
       Type: 'Rename'
@@ -22,7 +22,7 @@ testData:
       Header: 'Cache-Control'
       Type: 'Del'
     - Rule:
-      Name: 'Header join'
+      Name: 'Header joining'
       Header: 'Accept-Language'
       Sep: ', '
       Values:
