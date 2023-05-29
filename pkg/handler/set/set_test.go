@@ -3,6 +3,7 @@ package set_test
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/tomMoulard/htransformation/pkg/handler/set"
@@ -18,7 +19,8 @@ func TestSetHandler(t *testing.T) {
 		name           string
 		rule           types.Rule
 		requestHeaders map[string]string
-		want           map[string]string
+		wantOnRequest  map[string]string
+		wantOnResponse map[string]string
 	}{
 		{
 			name: "Set one simple",
@@ -29,7 +31,7 @@ func TestSetHandler(t *testing.T) {
 			requestHeaders: map[string]string{
 				"Foo": "Bar",
 			},
-			want: map[string]string{
+			wantOnRequest: map[string]string{
 				"Foo":    "Bar",
 				"X-Test": "Tested",
 			},
@@ -44,9 +46,26 @@ func TestSetHandler(t *testing.T) {
 				"Foo":    "Bar",
 				"X-Test": "Bar",
 			},
-			want: map[string]string{
+			wantOnRequest: map[string]string{
 				"Foo":    "Bar",
 				"X-Test": "Tested", // Override
+			},
+		},
+		{
+			name: "Set on response",
+			rule: types.Rule{
+				Header:        "X-Test",
+				Value:         "Tested",
+				SetOnResponse: true,
+			},
+			requestHeaders: map[string]string{
+				"Foo": "Bar",
+			},
+			wantOnRequest: map[string]string{
+				"Foo": "Bar",
+			},
+			wantOnResponse: map[string]string{
+				"X-Test": "Tested",
 			},
 		},
 	}
@@ -64,10 +83,15 @@ func TestSetHandler(t *testing.T) {
 				req.Header.Add(hName, hVal)
 			}
 
-			set.Handle(nil, req, test.rule)
+			rw := httptest.NewRecorder()
+			set.Handle(rw, req, test.rule)
 
-			for hName, hVal := range test.want {
+			for hName, hVal := range test.wantOnRequest {
 				assert.Equal(t, hVal, req.Header.Get(hName))
+			}
+
+			for hName, hVal := range test.wantOnResponse {
+				assert.Equal(t, hVal, rw.Header().Get(hName))
 			}
 		})
 	}

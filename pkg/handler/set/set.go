@@ -14,9 +14,9 @@ func Validate(rule types.Rule) error {
 	return nil
 }
 
-func Handle(_ http.ResponseWriter, req *http.Request, rule types.Rule) {
+func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 	if rule.SetOnResponse {
-		req.Header.Set(rule.Header, rule.Value)
+		rw.Header().Set(rule.Header, rule.Value)
 
 		return
 	}
