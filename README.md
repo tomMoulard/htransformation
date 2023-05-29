@@ -142,6 +142,7 @@ Example:
   Name: 'Header set'
   Header: 'X-Forwarded-For'
   HeaderPrefix: "^"
+  Sep: ','
   Values:
       - 'Foo'
       - '^CF-Connecting-IP'
@@ -153,8 +154,8 @@ Example:
 X-Forwarded-For: 1.1.1.1
 CF-Connecting-IP: 2.2.2.2
 # New headers:
+X-Forwarded-For: 1.1.1.1,Foo,2.2.2.2
 CF-Connecting-IP: 2.2.2.2
-X-Forwarded-For: Foo, 1.1.1.1
 ```
 
 ### RewriteValue Rule
