@@ -63,9 +63,9 @@ func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 			}
 
 			if rule.SetOnResponse {
-				rw.Header().Set(rule.Header, replacedHeaderValue)
+				rw.Header().Add(rule.Header, replacedHeaderValue)
 			} else {
-				req.Header.Set(headerName, replacedHeaderValue)
+				req.Header.Add(headerName, replacedHeaderValue)
 			}
 		}
 	}
