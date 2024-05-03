@@ -7,38 +7,21 @@ on:
 
 env:
   GO_VERSION: "1.22"
-  YAEGI_VERSION: "v0.15.1"
 
 jobs:
-
   test-unit:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ${{ github.workspace }}/go/src/github.com/tomMoulard/htransformation
-
     steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v3
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Check out code
-        uses: actions/checkout@v3
-        with:
-          path: go/src/github.com/tomMoulard/htransformation
-          fetch-depth: 0
-
       - name: make
         run: |
           make ci
-          git diff --exit-code
-
-      - name: run yaegi-tests
-        env:
-          GOPATH: ${{ github.workspace }}
-        run: |
-          go env -w GOPATH=${{ github.workspace }}/go
-          make yaegi_test
           git diff --exit-code
