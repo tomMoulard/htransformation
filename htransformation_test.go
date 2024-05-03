@@ -94,8 +94,6 @@ func TestValidation(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		test := test
-
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -156,8 +154,6 @@ func TestHeaderRules(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		test := test
-
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -165,7 +161,7 @@ func TestHeaderRules(t *testing.T) {
 			cfg.Rules = []types.Rule{test.rule}
 
 			ctx := context.Background()
-			next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+			next := http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})
 
 			handler, err := plug.New(ctx, next, cfg, "demo-plugin")
 			require.NoError(t, err)

@@ -7,7 +7,6 @@ on:
 
 env:
   GO_VERSION: "1.22"
-  GOLANGCI_LINT_VERSION: "v1.57.2"
   YAEGI_VERSION: "v0.15.1"
 
 jobs:
@@ -31,48 +30,9 @@ jobs:
           path: go/src/github.com/tomMoulard/htransformation
           fetch-depth: 0
 
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-test-unit-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-test-unit-go-
-
-      - name: Install golangci-lint ${{ env.GOLANGCI_LINT_VERSION }}
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin ${GOLANGCI_LINT_VERSION}
-          golangci-lint version
-
-      - name: Install yaegi ${{ env.YAEGI_VERSION }}
-        run: |
-          curl -sfL https://raw.githubusercontent.com/traefik/yaegi/master/install.sh | bash -s -- -b $(go env GOPATH)/bin ${YAEGI_VERSION}
-          yaegi version
-
-      - name: Setup GOPATH
-        run: go env -w GOPATH=${{ github.workspace }}/go
-
-      - name: go generate
-        run: |
-          go generate
-          git diff --exit-code
-
-      - name: go mod tidy
-        run: |
-          go mod tidy
-          git diff --exit-code
-
-      - name: make fmt
-        run: |
-          make fmt
-          git diff --exit-code
-
       - name: make
+        env:
+          GOPATH: ${{ github.workspace }}
         run: |
-          make lint test
+          make ci
           git diff --exit-code
-
-      - name: make yaegi_test
-        run: |
-          GOPATH=$(go env GOPATH) make yaegi_test

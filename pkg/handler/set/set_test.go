@@ -71,7 +71,6 @@ func TestSetHandler(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -125,13 +124,12 @@ func TestValidation(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		test := test
-
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
 			err := set.Validate(test.rule)
 			t.Log(err)
+
 			if test.wantErr {
 				assert.Error(t, err)
 			} else {
