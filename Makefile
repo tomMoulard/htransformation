@@ -1,12 +1,13 @@
-.PHONY: default ci lint test yaegi_test vendor clean generate tidy spell inst vulncheck
+.PHONY: default ci lint test yaegi_test vendor clean generate tidy spell inst vulncheck build
 
 export GO111MODULE=on
 
-default: spell lint test
+default: spell lint build test
 
 ci: inst tidy generate default vulncheck
 
 lint:
+	goreleaser check
 	golangci-lint run
 
 test:
@@ -36,3 +37,7 @@ inst:
 
 vulncheck:
 	govulncheck ./...
+
+build:
+	goreleaser build --clean --single-target --snapshot
+
