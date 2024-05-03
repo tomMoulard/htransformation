@@ -11,6 +11,49 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
+func TestDeleteHandler_Host(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		rule            types.Rule
+		expectedHost    string
+		expectedURLHost string
+	}{
+		{
+			name: "Remove host header",
+			rule: types.Rule{
+				Header: "Host",
+			},
+			expectedHost:    "",
+			expectedURLHost: "example.com",
+		},
+		{
+			name: "Remove non-host header",
+			rule: types.Rule{
+				Header: "X-Test",
+			},
+			expectedHost:    "example.com",
+			expectedURLHost: "example.com",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com/foo", nil)
+			require.NoError(t, err)
+
+			deleter.Handle(nil, req, test.rule)
+
+			assert.Equal(t, test.expectedHost, req.Host)
+			assert.Equal(t, test.expectedURLHost, req.URL.Host)
+		})
+	}
+}
+
 func TestDeleteHandler(t *testing.T) {
 	t.Parallel()
 

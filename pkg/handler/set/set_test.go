@@ -12,6 +12,43 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
+func TestSetHandler_Host(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		rule            types.Rule
+		expectedHost    string
+		expectedURLHost string
+	}{
+		{
+			name: "Set one simple",
+			rule: types.Rule{
+				Header: "Host",
+				Value:  "example.org",
+			},
+			expectedHost:    "example.org",
+			expectedURLHost: "example.com",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com/foo", nil)
+			require.NoError(t, err)
+
+			rw := httptest.NewRecorder()
+			set.Handle(rw, req, test.rule)
+
+			assert.Equal(t, test.expectedHost, req.Host)
+			assert.Equal(t, test.expectedURLHost, req.URL.Host)
+		})
+	}
+}
+
 func TestSetHandler(t *testing.T) {
 	t.Parallel()
 

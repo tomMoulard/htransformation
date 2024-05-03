@@ -16,9 +16,16 @@ func Validate(rule types.Rule) error {
 }
 
 func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
-	val, ok := req.Header[rule.Header]
-	if !ok {
-		return
+	var val []string
+	if strings.EqualFold(rule.Header, "Host") {
+		val = []string{req.Host}
+	} else {
+		var ok bool
+		val, ok = req.Header[rule.Header]
+
+		if !ok {
+			return
+		}
 	}
 
 	newHeaderVal := val[0]
@@ -32,7 +39,11 @@ func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 		return
 	}
 
-	req.Header.Set(rule.Header, newHeaderVal)
+	if strings.EqualFold(rule.Header, "Host") {
+		req.Host = newHeaderVal
+	} else {
+		req.Header.Set(rule.Header, newHeaderVal)
+	}
 }
 
 // getValue checks if prefix exists, the given prefix is present,
@@ -48,7 +59,11 @@ func getValue(ruleValue, valueIsHeaderPrefix string, req *http.Request) string {
 		// which is the prefix itself.
 		// This is because doing a req.Header.Get("") would not fly well.
 		if header != "" {
-			actualValue = req.Header.Get(header)
+			if strings.EqualFold(header, "Host") {
+				actualValue = req.Host
+			} else {
+				actualValue = req.Header.Get(header)
+			}
 		}
 	}
 

@@ -2,6 +2,7 @@ package deleter
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
@@ -17,5 +18,9 @@ func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 		return
 	}
 
-	req.Header.Del(rule.Header)
+	if strings.EqualFold(rule.Header, "Host") {
+		req.Host = ""
+	} else {
+		req.Header.Del(rule.Header)
+	}
 }

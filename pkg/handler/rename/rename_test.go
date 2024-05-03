@@ -12,6 +12,81 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
+func TestRenameHandler_Host(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		rule            types.Rule
+		requestHeaders  map[string]string
+		want            map[string]string
+		expectedHost    string
+		expectedURLHost string
+	}{
+		{
+			name: "Rename Host to another",
+			rule: types.Rule{
+				Header: "Host",
+				Value:  "Fake-Host",
+			},
+			requestHeaders: map[string]string{},
+			want: map[string]string{
+				"Fake-Host": "example.com",
+			},
+			expectedHost:    "",
+			expectedURLHost: "example.com",
+		},
+		{
+			name: "Rename another to Host",
+			rule: types.Rule{
+				Header: "Fake-Host",
+				Value:  "Host",
+			},
+			requestHeaders: map[string]string{
+				"Fake-Host": "example.org",
+			},
+			want:            map[string]string{},
+			expectedHost:    "example.org",
+			expectedURLHost: "example.com",
+		},
+		{
+			name: "Deletion",
+			rule: types.Rule{
+				Header: "Host",
+			},
+			requestHeaders:  map[string]string{},
+			want:            map[string]string{},
+			expectedHost:    "",
+			expectedURLHost: "example.com",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com/foo", nil)
+			require.NoError(t, err)
+
+			for hName, hVal := range test.requestHeaders {
+				req.Header.Add(hName, hVal)
+			}
+
+			test.rule.Regexp = regexp.MustCompile(test.rule.Header)
+
+			rename.Handle(nil, req, test.rule)
+
+			for hName, hVal := range test.want {
+				assert.Equal(t, hVal, req.Header.Get(hName))
+			}
+
+			assert.Equal(t, test.expectedHost, req.Host)
+			assert.Equal(t, test.expectedURLHost, req.URL.Host)
+		})
+	}
+}
+
 func TestRenameHandler(t *testing.T) {
 	t.Parallel()
 

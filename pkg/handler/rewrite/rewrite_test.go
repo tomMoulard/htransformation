@@ -12,6 +12,45 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
+func TestRewriteHandler_Host(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		rule            types.Rule
+		expectedHost    string
+		expectedURLHost string
+	}{
+		{
+			name: "one transformation",
+			rule: types.Rule{
+				Header:       "Host",
+				Value:        `(.+).local`,
+				ValueReplace: "$1.public.com",
+			},
+			expectedHost:    "service.public.com",
+			expectedURLHost: "service.local",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://service.local", nil)
+			require.NoError(t, err)
+
+			test.rule.Regexp = regexp.MustCompile(test.rule.Header)
+
+			rewrite.Handle(nil, req, test.rule)
+
+			assert.Equal(t, test.expectedHost, req.Host)
+			assert.Equal(t, test.expectedURLHost, req.URL.Host)
+		})
+	}
+}
+
 func TestRewriteHandler(t *testing.T) {
 	t.Parallel()
 

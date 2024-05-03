@@ -11,6 +11,57 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
+func TestJoinHandler_Host(t *testing.T) {
+	testCases := []struct {
+		name            string
+		rule            types.Rule
+		expectedHost    string
+		expectedURLHost string
+	}{
+		// Wired test cases...
+		{
+			name: "Join two headers simple value",
+			rule: types.Rule{
+				Sep:    ",",
+				Header: "Host",
+				Values: []string{
+					"example.org",
+				},
+			},
+			expectedHost:    "example.com,example.org",
+			expectedURLHost: "example.com",
+		},
+		{
+			name: "Twice Host header",
+			rule: types.Rule{
+				Sep:    ",",
+				Header: "Host",
+				Values: []string{
+					"^Host",
+				},
+				HeaderPrefix: "^",
+			},
+			expectedHost:    "example.com,example.com",
+			expectedURLHost: "example.com",
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com/foo", nil)
+			require.NoError(t, err)
+
+			join.Handle(nil, req, test.rule)
+
+			assert.Equal(t, test.expectedHost, req.Host)
+			assert.Equal(t, test.expectedURLHost, req.URL.Host)
+		})
+	}
+}
+
 func TestJoinHandler(t *testing.T) {
 	testCases := []struct {
 		name           string

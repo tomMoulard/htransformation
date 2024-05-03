@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
@@ -21,23 +22,34 @@ func Validate(rule types.Rule) error {
 }
 
 func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
+	originalHost := req.Header.Get("Host") // Eventually X-Forwarded-Host
+	req.Header.Set("Host", req.Host)
+
 	for headerName, headerValues := range req.Header {
 		if matched := rule.Regexp.Match([]byte(headerName)); !matched {
 			continue
 		}
 
-		if rule.SetOnResponse {
+		switch {
+		case rule.SetOnResponse:
 			rw.Header().Del(headerName)
-		} else {
+		case strings.EqualFold(headerName, "Host"):
+			req.Host = ""
+		default:
 			req.Header.Del(headerName)
 		}
 
 		for _, val := range headerValues {
-			if rule.SetOnResponse {
+			switch {
+			case rule.SetOnResponse:
 				rw.Header().Set(rule.Value, val)
-			} else {
+			case strings.EqualFold(rule.Value, "Host"):
+				req.Host = val
+			default:
 				req.Header.Set(rule.Value, val)
 			}
 		}
 	}
+
+	req.Header.Set("Host", originalHost)
 }
