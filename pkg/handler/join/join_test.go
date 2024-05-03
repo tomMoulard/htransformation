@@ -149,7 +149,6 @@ func TestJoinHandler(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -218,13 +217,12 @@ func TestValidation(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		test := test
-
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
 			err := join.Validate(test.rule)
 			t.Log(err)
+
 			if test.wantErr {
 				assert.Error(t, err)
 			} else {

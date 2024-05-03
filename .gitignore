@@ -23,3 +23,6 @@ plugins-storage
 
 # go vendored packages
 vendor/
+
+# goreleaser
+dist/
