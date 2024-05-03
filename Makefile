@@ -1,4 +1,4 @@
-.PHONY: lint test yaegi_test vendor clean
+.PHONY: default ci lint test yaegi_test vendor clean generate tidy spell inst vulncheck
 
 export GO111MODULE=on
 
