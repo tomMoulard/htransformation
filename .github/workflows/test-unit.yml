@@ -34,3 +34,11 @@ jobs:
         run: |
           make ci
           git diff --exit-code
+
+      - name: run yaegi-tests
+        env:
+          GOPATH: ${{ github.workspace }}
+        run: |
+          go env -w GOPATH=${{ github.workspace }}/go
+          make yaegi_test
+          git diff --exit-code

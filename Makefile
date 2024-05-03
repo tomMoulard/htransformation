@@ -2,7 +2,7 @@
 
 export GO111MODULE=on
 
-default: spell lint test yaegi_test
+default: spell lint test
 
 ci: inst tidy generate default vulncheck
 
