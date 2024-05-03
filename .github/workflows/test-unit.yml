@@ -12,7 +12,7 @@ env:
 jobs:
 
   test-unit:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     defaults:
       run:
@@ -31,8 +31,6 @@ jobs:
           fetch-depth: 0
 
       - name: make
-        env:
-          GOPATH: ${{ github.workspace }}
         run: |
           make ci
           git diff --exit-code
