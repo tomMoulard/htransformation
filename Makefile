@@ -4,7 +4,9 @@ export GO111MODULE=on
 
 SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
-default: fmt lint test yaegi_test
+default: fmt spell lint test yaegi_test
+
+ci: inst tidy generate default vulncheck
 
 lint:
 	golangci-lint run
@@ -23,3 +25,19 @@ vendor:
 
 clean:
 	rm -rf ./vendor
+
+generate:
+	go generate ./...
+
+tidy:
+	go mod tidy
+	cd tools && go mod tidy
+
+spell:
+	misspell -error -locale=US -w **.md
+
+inst:
+	cd tools && go install $(shell cd tools && go list -e -f '{{ join .Imports " " }}' -tags=tools)
+
+vulncheck:
+	govulncheck ./...
