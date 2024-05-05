@@ -12,7 +12,7 @@ func Validate(types.Rule) error {
 
 func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 	if rule.SetOnResponse {
-		rw.Header().Del(rule.Name)
+		rw.Header().Del(rule.Header)
 
 		return
 	}
