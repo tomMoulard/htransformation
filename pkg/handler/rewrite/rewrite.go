@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/tomMoulard/htransformation/pkg/types"
+	"github.com/tomMoulard/htransformation/pkg/utils"
 )
 
 func Validate(rule types.Rule) error {
@@ -28,15 +29,10 @@ func Validate(rule types.Rule) error {
 func applyHeaderRule(headerName string, headerValues []string, rule types.Rule,
 	req *http.Request, rw http.ResponseWriter,
 ) {
-	switch {
-	case rule.SetOnResponse:
+	if rule.SetOnResponse {
 		rw.Header().Del(headerName)
-
-	case strings.EqualFold(headerName, "Host"):
-		req.Host = ""
-
-	default:
-		req.Header.Del(headerName)
+	} else {
+		utils.DeleteHeader(req, headerName)
 	}
 
 	for _, headerValue := range headerValues {
@@ -63,15 +59,10 @@ func replaceHeaderValue(headerValue string, rule types.Rule) string {
 }
 
 func setHeader(headerName string, headerValue string, rule types.Rule, req *http.Request, rw http.ResponseWriter) {
-	switch {
-	case rule.SetOnResponse:
+	if rule.SetOnResponse {
 		rw.Header().Add(rule.Header, headerValue)
-
-	case strings.EqualFold(headerName, "Host"):
-		req.Host = headerValue
-
-	default:
-		req.Header.Add(headerName, headerValue)
+	} else {
+		utils.AddHeader(req, headerName, headerValue)
 	}
 }
 

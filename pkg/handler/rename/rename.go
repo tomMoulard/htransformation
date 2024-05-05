@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"strings"
 
 	"github.com/tomMoulard/htransformation/pkg/types"
+	"github.com/tomMoulard/htransformation/pkg/utils"
 )
 
 func Validate(rule types.Rule) error {
@@ -30,23 +30,17 @@ func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 			continue
 		}
 
-		switch {
-		case rule.SetOnResponse:
+		if rule.SetOnResponse {
 			rw.Header().Del(headerName)
-		case strings.EqualFold(headerName, "Host"):
-			req.Host = ""
-		default:
-			req.Header.Del(headerName)
+		} else {
+			utils.DeleteHeader(req, headerName)
 		}
 
 		for _, val := range headerValues {
-			switch {
-			case rule.SetOnResponse:
+			if rule.SetOnResponse {
 				rw.Header().Set(rule.Value, val)
-			case strings.EqualFold(rule.Value, "Host"):
-				req.Host = val
-			default:
-				req.Header.Set(rule.Value, val)
+			} else {
+				utils.SetHeader(req, rule.Value, val)
 			}
 		}
 	}
