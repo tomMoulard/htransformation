@@ -6,7 +6,7 @@ import (
 	"regexp"
 
 	"github.com/tomMoulard/htransformation/pkg/types"
-	"github.com/tomMoulard/htransformation/pkg/utils"
+	"github.com/tomMoulard/htransformation/pkg/utils/header"
 )
 
 func Validate(rule types.Rule) error {
@@ -33,14 +33,14 @@ func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 		if rule.SetOnResponse {
 			rw.Header().Del(headerName)
 		} else {
-			utils.DeleteHeader(req, headerName)
+			header.Delete(req, headerName)
 		}
 
 		for _, val := range headerValues {
 			if rule.SetOnResponse {
 				rw.Header().Set(rule.Value, val)
 			} else {
-				utils.SetHeader(req, rule.Value, val)
+				header.Set(req, rule.Value, val)
 			}
 		}
 	}

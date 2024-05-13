@@ -12,43 +12,6 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/types"
 )
 
-func TestSetHandler_Host(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name            string
-		rule            types.Rule
-		expectedHost    string
-		expectedURLHost string
-	}{
-		{
-			name: "Set one simple",
-			rule: types.Rule{
-				Header: "Host",
-				Value:  "example.org",
-			},
-			expectedHost:    "example.org",
-			expectedURLHost: "example.com",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-
-			ctx := context.Background()
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com/foo", nil)
-			require.NoError(t, err)
-
-			rw := httptest.NewRecorder()
-			set.Handle(rw, req, test.rule)
-
-			assert.Equal(t, test.expectedHost, req.Host)
-			assert.Equal(t, test.expectedURLHost, req.URL.Host)
-		})
-	}
-}
-
 func TestSetHandler(t *testing.T) {
 	t.Parallel()
 
@@ -58,6 +21,7 @@ func TestSetHandler(t *testing.T) {
 		requestHeaders map[string]string
 		wantOnRequest  map[string]string
 		wantOnResponse map[string]string
+		expectedHost   string
 	}{
 		{
 			name: "Set one simple",
@@ -72,6 +36,7 @@ func TestSetHandler(t *testing.T) {
 				"Foo":    "Bar",
 				"X-Test": "Tested",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "Set already existing simple",
@@ -87,6 +52,7 @@ func TestSetHandler(t *testing.T) {
 				"Foo":    "Bar",
 				"X-Test": "Tested", // Override
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "Set on response",
@@ -104,6 +70,15 @@ func TestSetHandler(t *testing.T) {
 			wantOnResponse: map[string]string{
 				"X-Test": "Tested",
 			},
+			expectedHost: "example.com",
+		},
+		{
+			name: "Set Host header",
+			rule: types.Rule{
+				Header: "Host",
+				Value:  "example.org",
+			},
+			expectedHost: "example.org",
 		},
 	}
 
@@ -112,7 +87,7 @@ func TestSetHandler(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com/foo", nil)
 			require.NoError(t, err)
 
 			for hName, hVal := range test.requestHeaders {
@@ -129,6 +104,9 @@ func TestSetHandler(t *testing.T) {
 			for hName, hVal := range test.wantOnResponse {
 				assert.Equal(t, hVal, rw.Header().Get(hName))
 			}
+
+			assert.Equal(t, test.expectedHost, req.Host)
+			assert.Equal(t, "example.com", req.URL.Host)
 		})
 	}
 }

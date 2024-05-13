@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/tomMoulard/htransformation/pkg/types"
-	"github.com/tomMoulard/htransformation/pkg/utils"
+	"github.com/tomMoulard/htransformation/pkg/utils/header"
 )
 
 func Validate(rule types.Rule) error {
@@ -24,21 +24,6 @@ func Validate(rule types.Rule) error {
 	}
 
 	return nil
-}
-
-func applyHeaderRule(headerName string, headerValues []string, rule types.Rule,
-	req *http.Request, rw http.ResponseWriter,
-) {
-	if rule.SetOnResponse {
-		rw.Header().Del(headerName)
-	} else {
-		utils.DeleteHeader(req, headerName)
-	}
-
-	for _, headerValue := range headerValues {
-		replacedValue := replaceHeaderValue(headerValue, rule)
-		setHeader(headerName, replacedValue, rule, req, rw)
-	}
 }
 
 func replaceHeaderValue(headerValue string, rule types.Rule) string {
@@ -58,14 +43,6 @@ func replaceHeaderValue(headerValue string, rule types.Rule) string {
 	return replacedHeaderValue
 }
 
-func setHeader(headerName string, headerValue string, rule types.Rule, req *http.Request, rw http.ResponseWriter) {
-	if rule.SetOnResponse {
-		rw.Header().Add(rule.Header, headerValue)
-	} else {
-		utils.AddHeader(req, headerName, headerValue)
-	}
-}
-
 func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 	headers := req.Header
 	if rule.SetOnResponse {
@@ -80,7 +57,20 @@ func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 			continue
 		}
 
-		applyHeaderRule(headerName, headerValues, rule, req, rw)
+		if rule.SetOnResponse {
+			rw.Header().Del(headerName)
+		} else {
+			header.Delete(req, headerName)
+		}
+
+		for _, headerValue := range headerValues {
+			replacedValue := replaceHeaderValue(headerValue, rule)
+			if rule.SetOnResponse {
+				rw.Header().Add(rule.Header, replacedValue)
+			} else {
+				header.Add(req, headerName, replacedValue)
+			}
+		}
 	}
 
 	req.Header.Set("Host", originalHost)

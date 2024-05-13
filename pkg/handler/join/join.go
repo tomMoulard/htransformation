@@ -58,12 +58,14 @@ func getValue(ruleValue, valueIsHeaderPrefix string, req *http.Request) string {
 		// we return the actual value,
 		// which is the prefix itself.
 		// This is because doing a req.Header.Get("") would not fly well.
-		if header != "" {
-			if strings.EqualFold(header, "Host") {
-				actualValue = req.Host
-			} else {
-				actualValue = req.Header.Get(header)
-			}
+		if header == "" {
+			return actualValue
+		}
+
+		if strings.EqualFold(header, "Host") {
+			actualValue = req.Host
+		} else {
+			actualValue = req.Header.Get(header)
 		}
 	}
 
