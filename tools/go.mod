@@ -7,7 +7,7 @@ replace go.opentelemetry.io/otel/exporters/otlp/internal v0.20.1 => go.opentelem
 
 require (
 	github.com/client9/misspell v0.3.4
-	github.com/golangci/golangci-lint v1.58.0
+	github.com/golangci/golangci-lint v1.58.1
 	github.com/goreleaser/goreleaser v1.26.0
 	github.com/traefik/yaegi v0.16.1
 	golang.org/x/vuln v1.1.0
@@ -23,7 +23,7 @@ require (
 	cloud.google.com/go/storage v1.39.1 // indirect
 	code.gitea.io/sdk/gitea v0.18.0 // indirect
 	dario.cat/mergo v1.0.0 // indirect
-	github.com/4meepo/tagalign v1.3.3 // indirect
+	github.com/4meepo/tagalign v1.3.4 // indirect
 	github.com/Abirdcfly/dupword v0.0.14 // indirect
 	github.com/AlekSi/pointer v1.2.0 // indirect
 	github.com/Antonboom/errname v0.1.13 // indirect
@@ -160,7 +160,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
-	github.com/ghostiam/protogetter v0.3.5 // indirect
+	github.com/ghostiam/protogetter v0.3.6 // indirect
 	github.com/github/smimesign v0.2.0 // indirect
 	github.com/go-critic/go-critic v0.11.3 // indirect
 	github.com/go-fed/httpsig v1.1.0 // indirect
