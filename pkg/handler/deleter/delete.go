@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/tomMoulard/htransformation/pkg/types"
+	"github.com/tomMoulard/htransformation/pkg/utils/header"
 )
 
 func Validate(types.Rule) error {
@@ -17,5 +18,5 @@ func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 		return
 	}
 
-	req.Header.Del(rule.Header)
+	header.Delete(req, rule.Header)
 }

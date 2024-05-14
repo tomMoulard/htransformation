@@ -13,10 +13,11 @@ import (
 
 func TestJoinHandler(t *testing.T) {
 	testCases := []struct {
-		name           string
-		rule           types.Rule
-		requestHeaders map[string]string
-		want           map[string]string
+		name            string
+		rule            types.Rule
+		requestHeaders  map[string]string
+		expectedHeaders map[string]string
+		expectedHost    string
 	}{
 		{
 			name: "Join two headers simple value",
@@ -31,10 +32,11 @@ func TestJoinHandler(t *testing.T) {
 				"Foo":    "Bar",
 				"X-Test": "Bar",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo":    "Bar",
 				"X-Test": "Bar,Tested",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "Join two headers multiple value",
@@ -51,10 +53,11 @@ func TestJoinHandler(t *testing.T) {
 				"Foo":    "Bar",
 				"X-Test": "Bar",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo":    "Bar",
 				"X-Test": "Bar,Tested,Compiled,Working",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "Join two headers simple value",
@@ -72,11 +75,12 @@ func TestJoinHandler(t *testing.T) {
 				"X-Source": "Tested",
 				"X-Test":   "Bar",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo":      "Bar",
 				"X-Source": "Tested",
 				"X-Test":   "Bar,Tested",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "Join two headers multiple value",
@@ -97,12 +101,13 @@ func TestJoinHandler(t *testing.T) {
 				"X-Source-1": "Tested",
 				"X-Source-3": "Working",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo":        "Bar",
 				"X-Test":     "Bar,Tested,Compiled,Working",
 				"X-Source-1": "Tested",
 				"X-Source-3": "Working",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "Join two headers multiple value with itself",
@@ -122,10 +127,11 @@ func TestJoinHandler(t *testing.T) {
 				"X-Test":     "test",
 				"X-Source-3": "third",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo":    "Bar",
 				"X-Test": "test,second,test,third",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "Join value with same HeaderPrefix",
@@ -141,10 +147,43 @@ func TestJoinHandler(t *testing.T) {
 				"Foo":    "Bar",
 				"X-Test": "Bar",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo":    "Bar",
 				"X-Test": "Bar,Tested",
 			},
+			expectedHost: "example.com",
+		},
+		{
+			name: "Join Host header",
+			rule: types.Rule{
+				Sep:          ",",
+				Header:       "Host",
+				HeaderPrefix: "Tested",
+				Values: []string{
+					"Tested",
+				},
+			},
+			requestHeaders: map[string]string{
+				"Foo":    "Bar",
+				"X-Test": "Bar",
+			},
+			expectedHeaders: map[string]string{
+				"Foo":    "Bar",
+				"X-Test": "Bar",
+			},
+			expectedHost: "example.com,Tested",
+		},
+		{
+			name: "Twice Host header",
+			rule: types.Rule{
+				Sep:    ",",
+				Header: "Host",
+				Values: []string{
+					"^Host",
+				},
+				HeaderPrefix: "^",
+			},
+			expectedHost: "example.com,example.com",
 		},
 	}
 
@@ -153,7 +192,7 @@ func TestJoinHandler(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com/foo", nil)
 			require.NoError(t, err)
 
 			for hName, hVal := range test.requestHeaders {
@@ -162,9 +201,12 @@ func TestJoinHandler(t *testing.T) {
 
 			join.Handle(nil, req, test.rule)
 
-			for hName, hVal := range test.want {
+			for hName, hVal := range test.expectedHeaders {
 				assert.Equal(t, hVal, req.Header.Get(hName))
 			}
+
+			assert.Equal(t, test.expectedHost, req.Host)
+			assert.Equal(t, "example.com", req.URL.Host)
 		})
 	}
 }

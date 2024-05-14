@@ -16,10 +16,11 @@ func TestDeleteHandler(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name           string
-		rule           types.Rule
-		requestHeaders map[string]string
-		want           map[string]string
+		name            string
+		rule            types.Rule
+		requestHeaders  map[string]string
+		expectedHeaders map[string]string
+		expectedHost    string
 	}{
 		{
 			name: "Remove not existing header",
@@ -29,9 +30,10 @@ func TestDeleteHandler(t *testing.T) {
 			requestHeaders: map[string]string{
 				"Foo": "Bar",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo": "Bar",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "Remove one header",
@@ -42,9 +44,17 @@ func TestDeleteHandler(t *testing.T) {
 				"Foo":    "Bar",
 				"X-Test": "Bar",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo": "Bar",
 			},
+			expectedHost: "example.com",
+		},
+		{
+			name: "Remove host header",
+			rule: types.Rule{
+				Header: "Host",
+			},
+			expectedHost: "",
 		},
 	}
 
@@ -53,7 +63,7 @@ func TestDeleteHandler(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com/foo", nil)
 			require.NoError(t, err)
 
 			for hName, hVal := range test.requestHeaders {
@@ -62,9 +72,12 @@ func TestDeleteHandler(t *testing.T) {
 
 			deleter.Handle(nil, req, test.rule)
 
-			for hName, hVal := range test.want {
+			for hName, hVal := range test.expectedHeaders {
 				assert.Equal(t, hVal, req.Header.Get(hName))
 			}
+
+			assert.Equal(t, test.expectedHost, req.Host)
+			assert.Equal(t, "example.com", req.URL.Host)
 		})
 	}
 }

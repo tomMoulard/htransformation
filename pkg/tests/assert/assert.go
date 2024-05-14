@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -36,6 +37,19 @@ func Equal(t *testing.T, expect, actual interface{}) bool {
 
 	if !reflect.DeepEqual(expect, actual) {
 		t.Logf("Expect %v, but got %v", expect, actual)
+		t.Fail()
+
+		return false
+	}
+
+	return true
+}
+
+func Equalf(t *testing.T, expect, actual interface{}, format string, args ...interface{}) bool {
+	t.Helper()
+
+	if !reflect.DeepEqual(expect, actual) {
+		t.Logf("Expect %v, but got %v: %s", expect, actual, fmt.Sprintf(format, args...))
 		t.Fail()
 
 		return false

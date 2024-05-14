@@ -16,10 +16,11 @@ func TestRenameHandler(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name           string
-		rule           types.Rule
-		requestHeaders map[string]string
-		want           map[string]string
+		name            string
+		rule            types.Rule
+		requestHeaders  map[string]string
+		expectedHeaders map[string]string
+		expectedHost    string
 	}{
 		{
 			name: "no transformation",
@@ -29,9 +30,10 @@ func TestRenameHandler(t *testing.T) {
 			requestHeaders: map[string]string{
 				"Foo": "Bar",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo": "Bar",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "one transformation",
@@ -43,10 +45,11 @@ func TestRenameHandler(t *testing.T) {
 				"Foo":  "Bar",
 				"Test": "Success",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo":       "Bar",
 				"X-Testing": "Success",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "Deletion",
@@ -57,10 +60,44 @@ func TestRenameHandler(t *testing.T) {
 				"Foo":  "Bar",
 				"Test": "Success",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo":  "Bar",
 				"Test": "",
 			},
+			expectedHost: "example.com",
+		},
+		{
+			name: "Rename Host to another",
+			rule: types.Rule{
+				Header: "Host",
+				Value:  "Fake-Host",
+			},
+			requestHeaders: map[string]string{},
+			expectedHeaders: map[string]string{
+				"Fake-Host": "example.com",
+			},
+			expectedHost: "",
+		},
+		{
+			name: "Rename another to Host",
+			rule: types.Rule{
+				Header: "Fake-Host",
+				Value:  "Host",
+			},
+			requestHeaders: map[string]string{
+				"Fake-Host": "example.org",
+			},
+			expectedHeaders: map[string]string{},
+			expectedHost:    "example.org",
+		},
+		{
+			name: "Deletion",
+			rule: types.Rule{
+				Header: "Host",
+			},
+			requestHeaders:  map[string]string{},
+			expectedHeaders: map[string]string{},
+			expectedHost:    "",
 		},
 	}
 
@@ -69,7 +106,7 @@ func TestRenameHandler(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com/foo", nil)
 			require.NoError(t, err)
 
 			for hName, hVal := range test.requestHeaders {
@@ -80,9 +117,12 @@ func TestRenameHandler(t *testing.T) {
 
 			rename.Handle(nil, req, test.rule)
 
-			for hName, hVal := range test.want {
+			for hName, hVal := range test.expectedHeaders {
 				assert.Equal(t, hVal, req.Header.Get(hName))
 			}
+
+			assert.Equal(t, test.expectedHost, req.Host)
+			assert.Equal(t, "example.com", req.URL.Host)
 		})
 	}
 }

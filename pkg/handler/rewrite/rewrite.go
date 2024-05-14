@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/tomMoulard/htransformation/pkg/types"
+	"github.com/tomMoulard/htransformation/pkg/utils/header"
 )
 
 func Validate(rule types.Rule) error {
@@ -25,11 +26,31 @@ func Validate(rule types.Rule) error {
 	return nil
 }
 
+func replaceHeaderValue(headerValue string, rule types.Rule) string {
+	replacedHeaderValue := rule.ValueReplace
+	ruleValueRegexp := regexp.MustCompile(rule.Value)
+	captures := ruleValueRegexp.FindStringSubmatch(headerValue)
+
+	if len(captures) == 0 || captures[0] == "" {
+		return headerValue
+	}
+
+	for j, capture := range captures[1:] {
+		placeholder := fmt.Sprintf("$%d", j+1)
+		replacedHeaderValue = strings.ReplaceAll(replacedHeaderValue, placeholder, capture)
+	}
+
+	return replacedHeaderValue
+}
+
 func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 	headers := req.Header
 	if rule.SetOnResponse {
 		headers = rw.Header()
 	}
+
+	originalHost := req.Header.Get("Host") // Eventually X-Forwarded-Host
+	req.Header.Set("Host", req.Host)
 
 	for headerName, headerValues := range headers {
 		if matched := rule.Regexp.Match([]byte(headerName)); !matched {
@@ -39,34 +60,18 @@ func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 		if rule.SetOnResponse {
 			rw.Header().Del(headerName)
 		} else {
-			req.Header.Del(headerName)
+			header.Delete(req, headerName)
 		}
 
 		for _, headerValue := range headerValues {
-			replacedHeaderValue := rule.ValueReplace
-			ruleValueRegexp := regexp.MustCompile(rule.Value)
-			captures := ruleValueRegexp.FindStringSubmatch(headerValue)
-
-			if len(captures) == 0 || captures[0] == "" {
-				if rule.SetOnResponse {
-					rw.Header().Set(rule.Header, replacedHeaderValue)
-				} else {
-					req.Header.Set(headerName, headerValue)
-				}
-
-				continue
-			}
-
-			for j, capture := range captures[1:] {
-				placeholder := fmt.Sprintf("$%d", j+1)
-				replacedHeaderValue = strings.ReplaceAll(replacedHeaderValue, placeholder, capture)
-			}
-
+			replacedValue := replaceHeaderValue(headerValue, rule)
 			if rule.SetOnResponse {
-				rw.Header().Add(rule.Header, replacedHeaderValue)
+				rw.Header().Add(rule.Header, replacedValue)
 			} else {
-				req.Header.Add(headerName, replacedHeaderValue)
+				header.Add(req, headerName, replacedValue)
 			}
 		}
 	}
+
+	req.Header.Set("Host", originalHost)
 }

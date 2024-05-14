@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	"github.com/tomMoulard/htransformation/pkg/types"
+	"github.com/tomMoulard/htransformation/pkg/utils/header"
 )
 
 func Validate(rule types.Rule) error {
@@ -21,6 +22,9 @@ func Validate(rule types.Rule) error {
 }
 
 func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
+	originalHost := req.Header.Get("Host") // Eventually X-Forwarded-Host
+	req.Header.Set("Host", req.Host)
+
 	for headerName, headerValues := range req.Header {
 		if matched := rule.Regexp.Match([]byte(headerName)); !matched {
 			continue
@@ -29,15 +33,17 @@ func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
 		if rule.SetOnResponse {
 			rw.Header().Del(headerName)
 		} else {
-			req.Header.Del(headerName)
+			header.Delete(req, headerName)
 		}
 
 		for _, val := range headerValues {
 			if rule.SetOnResponse {
 				rw.Header().Set(rule.Value, val)
 			} else {
-				req.Header.Set(rule.Value, val)
+				header.Set(req, rule.Value, val)
 			}
 		}
 	}
+
+	req.Header.Set("Host", originalHost)
 }

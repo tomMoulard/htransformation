@@ -16,10 +16,11 @@ func TestRewriteHandler(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name           string
-		rule           types.Rule
-		requestHeaders map[string]string
-		want           map[string]string
+		name            string
+		rule            types.Rule
+		requestHeaders  map[string]string
+		expectedHeaders map[string]string
+		expectedHost    string
 	}{
 		{
 			name: "one transformation",
@@ -31,9 +32,10 @@ func TestRewriteHandler(t *testing.T) {
 			requestHeaders: map[string]string{
 				"Foo": "X-12-Test",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo": "Y-Test-12",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "one transformation with 2 headers",
@@ -46,10 +48,11 @@ func TestRewriteHandler(t *testing.T) {
 				"Bar": "Baz",
 				"Foo": "X-12-Test",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Bar": "Baz",
 				"Foo": "Y-Test-12",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			// the value doesn't match, we leave the value as is
@@ -62,9 +65,10 @@ func TestRewriteHandler(t *testing.T) {
 			requestHeaders: map[string]string{
 				"Foo": "X-Test",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo": "X-Test",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			name: "no header match and no value match",
@@ -76,9 +80,10 @@ func TestRewriteHandler(t *testing.T) {
 			requestHeaders: map[string]string{
 				"Foo": "X-Test",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo": "X-Test",
 			},
+			expectedHost: "example.com",
 		},
 		{
 			// no placeholder but the value matches, we replace the value
@@ -91,9 +96,19 @@ func TestRewriteHandler(t *testing.T) {
 			requestHeaders: map[string]string{
 				"Foo": "X-Test",
 			},
-			want: map[string]string{
+			expectedHeaders: map[string]string{
 				"Foo": "Y-Bla",
 			},
+			expectedHost: "example.com",
+		},
+		{
+			name: "Host header transformation",
+			rule: types.Rule{
+				Header:       "Host",
+				Value:        `(.+).com`,
+				ValueReplace: "$1.org",
+			},
+			expectedHost: "example.org",
 		},
 	}
 
@@ -102,7 +117,7 @@ func TestRewriteHandler(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com/foo", nil)
 			require.NoError(t, err)
 
 			for hName, hVal := range test.requestHeaders {
@@ -113,29 +128,32 @@ func TestRewriteHandler(t *testing.T) {
 
 			rewrite.Handle(nil, req, test.rule)
 
-			for hName, hVal := range test.want {
+			for hName, hVal := range test.expectedHeaders {
 				assert.Equal(t, hVal, req.Header.Get(hName))
 			}
+
+			assert.Equal(t, test.expectedHost, req.Host)
+			assert.Equal(t, "example.com", req.URL.Host)
 		})
 	}
 }
 
 func TestValidation(t *testing.T) {
 	testCases := []struct {
-		name    string
-		rule    types.Rule
-		wantErr bool
+		name      string
+		rule      types.Rule
+		expectErr bool
 	}{
 		{
-			name:    "no rules",
-			wantErr: true,
+			name:      "no rules",
+			expectErr: true,
 		},
 		{
 			name: "missing ValueReplace value",
 			rule: types.Rule{
 				Type: types.RewriteValueRule,
 			},
-			wantErr: true,
+			expectErr: true,
 		},
 		{
 			name: "invalid Header regexp",
@@ -143,7 +161,7 @@ func TestValidation(t *testing.T) {
 				Header: "(",
 				Type:   types.RewriteValueRule,
 			},
-			wantErr: true,
+			expectErr: true,
 		},
 		{
 			name: "invalid Value regexp",
@@ -152,7 +170,7 @@ func TestValidation(t *testing.T) {
 				Value:        "(",
 				Type:         types.RewriteValueRule,
 			},
-			wantErr: true,
+			expectErr: true,
 		},
 		{
 			name: "valid rule",
@@ -162,7 +180,7 @@ func TestValidation(t *testing.T) {
 				Value:        "not-empty",
 				Type:         types.RewriteValueRule,
 			},
-			wantErr: false,
+			expectErr: false,
 		},
 	}
 
@@ -173,7 +191,7 @@ func TestValidation(t *testing.T) {
 			err := rewrite.Validate(test.rule)
 			t.Log(err)
 
-			if test.wantErr {
+			if test.expectErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
