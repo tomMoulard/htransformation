@@ -70,7 +70,10 @@ func TestDeleteHandler(t *testing.T) {
 				req.Header.Add(hName, hVal)
 			}
 
-			deleter.Handle(nil, req, test.rule)
+			deleteHandler, err := deleter.New(test.rule)
+			require.NoError(t, err)
+
+			deleteHandler.Handle(nil, req)
 
 			for hName, hVal := range test.expectedHeaders {
 				assert.Equal(t, hVal, req.Header.Get(hName))
@@ -130,7 +133,10 @@ func TestDeleteHandlerOnResponse(t *testing.T) {
 				rw.Header().Add(hName, hVal)
 			}
 
-			deleter.Handle(rw, nil, test.rule)
+			deleteHandler, err := deleter.New(test.rule)
+			require.NoError(t, err)
+
+			deleteHandler.Handle(rw, nil)
 
 			for hName, hVal := range test.want {
 				assert.Equal(t, hVal, rw.Header().Get(hName))
@@ -140,6 +146,8 @@ func TestDeleteHandlerOnResponse(t *testing.T) {
 }
 
 func TestValidation(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		rule    types.Rule
@@ -163,7 +171,10 @@ func TestValidation(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := deleter.Validate(test.rule)
+			deleteHandler, err := deleter.New(test.rule)
+			require.NoError(t, err)
+
+			err = deleteHandler.Validate()
 			t.Log(err)
 
 			if test.wantErr {

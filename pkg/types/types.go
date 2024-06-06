@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	"net/http"
 	"regexp"
 )
 
@@ -33,7 +34,7 @@ type Rule struct {
 	ValueReplace string         `yaml:"ValueReplace"` // value used as replacement in rewrite
 	Values       []string       `yaml:"Values"`       // values to join
 	// if SetOnResponse is true, the header will be changed on the response. It will be on the request otherwise (default).
-	SetOnResponse bool `yaml:"SetOnRequest"`
+	SetOnResponse bool `yaml:"SetOnResponse"`
 }
 
 var ErrMissingRequiredFields = errors.New("missing required fields")
@@ -41,3 +42,8 @@ var ErrMissingRequiredFields = errors.New("missing required fields")
 var ErrInvalidRuleType = errors.New("invalid rule type")
 
 var ErrInvalidRegexp = errors.New("invalid regexp")
+
+type Handler interface {
+	Validate() error
+	Handle(rw http.ResponseWriter, req *http.Request)
+}

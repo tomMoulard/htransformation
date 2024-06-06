@@ -7,16 +7,24 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/utils/header"
 )
 
-func Validate(types.Rule) error {
+type Deleter struct {
+	rule *types.Rule
+}
+
+func New(rule types.Rule) (types.Handler, error) {
+	return &Deleter{rule: &rule}, nil
+}
+
+func (d *Deleter) Validate() error {
 	return nil
 }
 
-func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
-	if rule.SetOnResponse {
-		rw.Header().Del(rule.Header)
+func (d *Deleter) Handle(rw http.ResponseWriter, req *http.Request) {
+	if d.rule.SetOnResponse {
+		rw.Header().Del(d.rule.Header)
 
 		return
 	}
 
-	header.Delete(req, rule.Header)
+	header.Delete(req, d.rule.Header)
 }

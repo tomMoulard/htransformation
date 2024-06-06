@@ -3,7 +3,6 @@ package rename_test
 import (
 	"context"
 	"net/http"
-	"regexp"
 	"testing"
 
 	"github.com/tomMoulard/htransformation/pkg/handler/rename"
@@ -113,9 +112,10 @@ func TestRenameHandler(t *testing.T) {
 				req.Header.Add(hName, hVal)
 			}
 
-			test.rule.Regexp = regexp.MustCompile(test.rule.Header)
+			renameHandler, err := rename.New(test.rule)
+			require.NoError(t, err)
 
-			rename.Handle(nil, req, test.rule)
+			renameHandler.Handle(nil, req)
 
 			for hName, hVal := range test.expectedHeaders {
 				assert.Equal(t, hVal, req.Header.Get(hName))
@@ -128,14 +128,17 @@ func TestRenameHandler(t *testing.T) {
 }
 
 func TestValidation(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
-		name    string
-		rule    types.Rule
-		wantErr bool
+		name            string
+		rule            types.Rule
+		wantNewErr      bool
+		wantValidateErr bool
 	}{
 		{
-			name:    "no rules",
-			wantErr: true,
+			name:            "no rules",
+			wantValidateErr: true,
 		},
 		{
 			name: "missing header value",
@@ -143,7 +146,7 @@ func TestValidation(t *testing.T) {
 				Header: ".",
 				Type:   types.Rename,
 			},
-			wantErr: true,
+			wantValidateErr: true,
 		},
 		{
 			name: "invalid regexp",
@@ -151,7 +154,7 @@ func TestValidation(t *testing.T) {
 				Header: "(",
 				Type:   types.Rename,
 			},
-			wantErr: true,
+			wantNewErr: true,
 		},
 		{
 			name: "valid rule",
@@ -160,7 +163,7 @@ func TestValidation(t *testing.T) {
 				Value:  "not-empty",
 				Type:   types.Rename,
 			},
-			wantErr: false,
+			wantNewErr: false,
 		},
 	}
 
@@ -168,10 +171,19 @@ func TestValidation(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := rename.Validate(test.rule)
+			renameHandler, err := rename.New(test.rule)
+			if test.wantNewErr {
+				assert.Error(t, err)
+
+				return
+			}
+
+			assert.NoError(t, err)
+
+			err = renameHandler.Validate()
 			t.Log(err)
 
-			if test.wantErr {
+			if test.wantValidateErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)

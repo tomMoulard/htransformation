@@ -12,6 +12,8 @@ import (
 )
 
 func TestJoinHandler(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name            string
 		rule            types.Rule
@@ -199,7 +201,10 @@ func TestJoinHandler(t *testing.T) {
 				req.Header.Add(hName, hVal)
 			}
 
-			join.Handle(nil, req, test.rule)
+			joinHandler, err := join.New(test.rule)
+			require.NoError(t, err)
+
+			joinHandler.Handle(nil, req)
 
 			for hName, hVal := range test.expectedHeaders {
 				assert.Equal(t, hVal, req.Header.Get(hName))
@@ -212,6 +217,8 @@ func TestJoinHandler(t *testing.T) {
 }
 
 func TestValidation(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		rule    types.Rule
@@ -262,7 +269,10 @@ func TestValidation(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := join.Validate(test.rule)
+			joinHandler, err := join.New(test.rule)
+			require.NoError(t, err)
+
+			err = joinHandler.Validate()
 			t.Log(err)
 
 			if test.wantErr {
