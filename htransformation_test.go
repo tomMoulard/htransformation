@@ -13,6 +13,8 @@ import (
 )
 
 func TestValidation(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		config  *plug.Config
@@ -108,6 +110,8 @@ func TestValidation(t *testing.T) {
 }
 
 func TestHeaderRules(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name             string
 		rule             types.Rule

@@ -12,6 +12,8 @@ import (
 )
 
 func TestJoinHandler(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name            string
 		rule            types.Rule
@@ -215,6 +217,8 @@ func TestJoinHandler(t *testing.T) {
 }
 
 func TestValidation(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		rule    types.Rule

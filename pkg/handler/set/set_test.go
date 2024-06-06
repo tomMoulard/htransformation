@@ -115,6 +115,8 @@ func TestSetHandler(t *testing.T) {
 }
 
 func TestValidation(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		rule    types.Rule
