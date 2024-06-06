@@ -21,6 +21,7 @@ linters:
     - paralleltest # false positive
     - tparallel # false positive
     - tagliatelle # Breaking: 'Rule' tag -> 'rule'
+    - ireturn # Not relevant
 
 issues:
   exclude-rules:

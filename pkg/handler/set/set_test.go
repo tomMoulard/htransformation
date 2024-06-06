@@ -94,8 +94,11 @@ func TestSetHandler(t *testing.T) {
 				req.Header.Add(hName, hVal)
 			}
 
+			setHandler, err := set.New(test.rule)
+			require.NoError(t, err)
+
 			rw := httptest.NewRecorder()
-			set.Handle(rw, req, test.rule)
+			setHandler.Handle(rw, req)
 
 			for hName, hVal := range test.wantOnRequest {
 				assert.Equal(t, hVal, req.Header.Get(hName))
@@ -142,7 +145,10 @@ func TestValidation(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := set.Validate(test.rule)
+			setHandler, err := set.New(test.rule)
+			require.NoError(t, err)
+
+			err = setHandler.Validate()
 			t.Log(err)
 
 			if test.wantErr {

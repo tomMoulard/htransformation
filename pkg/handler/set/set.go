@@ -7,20 +7,28 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/utils/header"
 )
 
-func Validate(rule types.Rule) error {
-	if rule.Header == "" {
+type Set struct {
+	rule *types.Rule
+}
+
+func New(rule types.Rule) (types.Handler, error) {
+	return &Set{rule: &rule}, nil
+}
+
+func (s *Set) Validate() error {
+	if s.rule.Header == "" {
 		return types.ErrMissingRequiredFields
 	}
 
 	return nil
 }
 
-func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
-	if rule.SetOnResponse {
-		rw.Header().Set(rule.Header, rule.Value)
+func (s *Set) Handle(rw http.ResponseWriter, req *http.Request) {
+	if s.rule.SetOnResponse {
+		rw.Header().Set(s.rule.Header, s.rule.Value)
 
 		return
 	}
 
-	header.Set(req, rule.Header, rule.Value)
+	header.Set(req, s.rule.Header, s.rule.Value)
 }

@@ -3,7 +3,6 @@ package rewrite_test
 import (
 	"context"
 	"net/http"
-	"regexp"
 	"testing"
 
 	"github.com/tomMoulard/htransformation/pkg/handler/rewrite"
@@ -124,9 +123,10 @@ func TestRewriteHandler(t *testing.T) {
 				req.Header.Add(hName, hVal)
 			}
 
-			test.rule.Regexp = regexp.MustCompile(test.rule.Header)
+			rewriteHandler, err := rewrite.New(test.rule)
+			require.NoError(t, err)
 
-			rewrite.Handle(nil, req, test.rule)
+			rewriteHandler.Handle(nil, req)
 
 			for hName, hVal := range test.expectedHeaders {
 				assert.Equal(t, hVal, req.Header.Get(hName))
@@ -140,20 +140,21 @@ func TestRewriteHandler(t *testing.T) {
 
 func TestValidation(t *testing.T) {
 	testCases := []struct {
-		name      string
-		rule      types.Rule
-		expectErr bool
+		name            string
+		rule            types.Rule
+		wantNewErr      bool
+		wantValidateErr bool
 	}{
 		{
-			name:      "no rules",
-			expectErr: true,
+			name:            "no rules",
+			wantValidateErr: true,
 		},
 		{
 			name: "missing ValueReplace value",
 			rule: types.Rule{
 				Type: types.RewriteValueRule,
 			},
-			expectErr: true,
+			wantValidateErr: true,
 		},
 		{
 			name: "invalid Header regexp",
@@ -161,7 +162,7 @@ func TestValidation(t *testing.T) {
 				Header: "(",
 				Type:   types.RewriteValueRule,
 			},
-			expectErr: true,
+			wantNewErr: true,
 		},
 		{
 			name: "invalid Value regexp",
@@ -170,7 +171,7 @@ func TestValidation(t *testing.T) {
 				Value:        "(",
 				Type:         types.RewriteValueRule,
 			},
-			expectErr: true,
+			wantNewErr: true,
 		},
 		{
 			name: "valid rule",
@@ -180,7 +181,7 @@ func TestValidation(t *testing.T) {
 				Value:        "not-empty",
 				Type:         types.RewriteValueRule,
 			},
-			expectErr: false,
+			wantNewErr: false,
 		},
 	}
 
@@ -188,10 +189,19 @@ func TestValidation(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := rewrite.Validate(test.rule)
+			rewriteHandler, err := rewrite.New(test.rule)
+			if test.wantNewErr {
+				assert.Error(t, err)
+
+				return
+			}
+
+			assert.NoError(t, err)
+
+			err = rewriteHandler.Validate()
 			t.Log(err)
 
-			if test.expectErr {
+			if test.wantValidateErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)

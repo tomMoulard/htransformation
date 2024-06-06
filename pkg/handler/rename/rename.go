@@ -9,38 +9,49 @@ import (
 	"github.com/tomMoulard/htransformation/pkg/utils/header"
 )
 
-func Validate(rule types.Rule) error {
-	if _, err := regexp.Compile(rule.Header); err != nil {
-		return fmt.Errorf("%s: %w", types.ErrInvalidRegexp.Error(), err)
+type Rename struct {
+	rule *types.Rule
+}
+
+func New(rule types.Rule) (types.Handler, error) {
+	re, err := regexp.Compile(rule.Header)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", types.ErrInvalidRegexp, rule.Name)
 	}
 
-	if rule.Value == "" {
+	rule.Regexp = re
+
+	return &Rename{rule: &rule}, nil
+}
+
+func (r *Rename) Validate() error {
+	if r.rule.Value == "" {
 		return types.ErrMissingRequiredFields
 	}
 
 	return nil
 }
 
-func Handle(rw http.ResponseWriter, req *http.Request, rule types.Rule) {
+func (r *Rename) Handle(rw http.ResponseWriter, req *http.Request) {
 	originalHost := req.Header.Get("Host") // Eventually X-Forwarded-Host
 	req.Header.Set("Host", req.Host)
 
 	for headerName, headerValues := range req.Header {
-		if matched := rule.Regexp.Match([]byte(headerName)); !matched {
+		if matched := r.rule.Regexp.Match([]byte(headerName)); !matched {
 			continue
 		}
 
-		if rule.SetOnResponse {
+		if r.rule.SetOnResponse {
 			rw.Header().Del(headerName)
 		} else {
 			header.Delete(req, headerName)
 		}
 
 		for _, val := range headerValues {
-			if rule.SetOnResponse {
-				rw.Header().Set(rule.Value, val)
+			if r.rule.SetOnResponse {
+				rw.Header().Set(r.rule.Value, val)
 			} else {
-				header.Set(req, rule.Value, val)
+				header.Set(req, r.rule.Value, val)
 			}
 		}
 	}

@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	"net/http"
 	"regexp"
 )
 
@@ -41,3 +42,8 @@ var ErrMissingRequiredFields = errors.New("missing required fields")
 var ErrInvalidRuleType = errors.New("invalid rule type")
 
 var ErrInvalidRegexp = errors.New("invalid regexp")
+
+type Handler interface {
+	Validate() error
+	Handle(rw http.ResponseWriter, req *http.Request)
+}
