@@ -81,7 +81,7 @@ func (r *Rewrite) Handle(rw http.ResponseWriter, req *http.Request) {
 		for _, headerValue := range headerValues {
 			replacedValue := r.replaceHeaderValue(headerValue)
 			if r.rule.SetOnResponse {
-				rw.Header().Add(r.rule.Header, replacedValue)
+				rw.Header().Add(headerName, replacedValue)
 			} else {
 				header.Add(req, headerName, replacedValue)
 			}
