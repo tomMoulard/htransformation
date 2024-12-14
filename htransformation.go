@@ -126,7 +126,7 @@ func (wrw *wrappedResponseWriter) Write(p []byte) (int, error) {
 
 	n, err := wrw.rw.Write(p)
 	if err != nil {
-		return 0, fmt.Errorf("%w: write response", err)
+		return 0, fmt.Errorf("write response: %w", err)
 	}
 
 	return n, nil
@@ -145,7 +145,7 @@ func (wrw *wrappedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) 
 
 	conn, rw, err := hijacker.Hijack()
 	if err != nil {
-		return nil, nil, fmt.Errorf("%w: Hijack", err)
+		return nil, nil, fmt.Errorf("hijack: %w", err)
 	}
 
 	return conn, rw, nil
