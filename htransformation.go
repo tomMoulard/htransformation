@@ -123,7 +123,13 @@ func (wrw *wrappedResponseWriter) Header() http.Header {
 
 func (wrw *wrappedResponseWriter) Write(p []byte) (int, error) {
 	wrw.handleResponseHeader()
-	return wrw.rw.Write(p)
+
+	n, err := wrw.rw.Write(p)
+	if err != nil {
+		return 0, fmt.Errorf("%w: write response", err)
+	}
+
+	return n, nil
 }
 
 func (wrw *wrappedResponseWriter) WriteHeader(statusCode int) {
@@ -134,8 +140,13 @@ func (wrw *wrappedResponseWriter) WriteHeader(statusCode int) {
 func (wrw *wrappedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	hijacker, ok := wrw.rw.(http.Hijacker)
 	if !ok {
-		return nil, nil, fmt.Errorf("%T is not an http.Hijacker", wrw.rw)
+		return nil, nil, types.ErrNotHTTPHijacker
 	}
 
-	return hijacker.Hijack()
+	conn, rw, err := hijacker.Hijack()
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w: Hijack", err)
+	}
+
+	return conn, rw, nil
 }

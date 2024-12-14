@@ -194,6 +194,8 @@ func TestHeaderRules(t *testing.T) {
 }
 
 func TestSetOnResponse(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name             string
 		headerName       string
@@ -232,13 +234,15 @@ func TestSetOnResponse(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			cfg := plug.CreateConfig()
 			cfg.Rules = []types.Rule{test.rule}
 
 			ctx := context.Background()
-			next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			next := http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
 				rw.Header().Add(test.headerName, test.headerValue)
-				rw.WriteHeader(200)
+				rw.WriteHeader(http.StatusOK)
 			})
 
 			handler, err := plug.New(ctx, next, cfg, "demo-plugin")
