@@ -192,3 +192,75 @@ func TestHeaderRules(t *testing.T) {
 		})
 	}
 }
+
+func TestSetOnResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name             string
+		headerName       string
+		headerValue      string
+		rule             types.Rule
+		expectedNewValue string
+	}{
+		{
+			name:        "set rule",
+			headerName:  "Header-A",
+			headerValue: "valueA",
+			rule: types.Rule{
+				Name:          "set rule",
+				Header:        "Header-A",
+				Value:         "newValue",
+				Type:          types.Set,
+				SetOnResponse: true,
+			},
+			expectedNewValue: "newValue",
+		},
+		{
+			name:        "rewrite rule",
+			headerName:  "Header-A",
+			headerValue: "valueAA",
+			rule: types.Rule{
+				Name:          "rewrite rule",
+				Header:        "Header-A",
+				Value:         `value([\w\W]+)`,
+				ValueReplace:  "newValue-$1",
+				Type:          types.RewriteValueRule,
+				SetOnResponse: true,
+			},
+			expectedNewValue: "newValue-AA",
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := plug.CreateConfig()
+			cfg.Rules = []types.Rule{test.rule}
+
+			ctx := context.Background()
+			next := http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
+				rw.Header().Add(test.headerName, test.headerValue)
+				rw.WriteHeader(http.StatusOK)
+			})
+
+			handler, err := plug.New(ctx, next, cfg, "demo-plugin")
+			require.NoError(t, err)
+
+			recorder := httptest.NewRecorder()
+
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
+			require.NoError(t, err)
+
+			handler.ServeHTTP(recorder, req)
+			resp := recorder.Result()
+			statusCode := resp.StatusCode
+			require.NoError(t, resp.Body.Close())
+
+			assert.Equal(t, http.StatusOK, statusCode)
+
+			assert.Equal(t, test.expectedNewValue, resp.Header.Get(test.rule.Header))
+		})
+	}
+}

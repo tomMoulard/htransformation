@@ -43,6 +43,8 @@ var ErrInvalidRuleType = errors.New("invalid rule type")
 
 var ErrInvalidRegexp = errors.New("invalid regexp")
 
+var ErrNotHTTPHijacker = errors.New("not an http.Hijacker")
+
 type Handler interface {
 	Validate() error
 	Handle(rw http.ResponseWriter, req *http.Request)
