@@ -1,7 +1,6 @@
 package rewrite_test
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -115,8 +114,7 @@ func TestRewriteHandler(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx := context.Background()
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com/foo", nil)
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://example.com/foo", nil)
 			require.NoError(t, err)
 
 			for hName, hVal := range test.requestHeaders {

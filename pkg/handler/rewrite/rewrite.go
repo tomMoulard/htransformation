@@ -16,21 +16,21 @@ type Rewrite struct {
 }
 
 func New(rule types.Rule) (types.Handler, error) {
-	re, err := regexp.Compile(rule.Header)
+	reg, err := regexp.Compile(rule.Header)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s: %q", types.ErrInvalidRegexp, rule.Name, rule.Header)
 	}
 
-	rule.Regexp = re
+	rule.Regexp = reg
 
-	re, err = regexp.Compile(rule.Value)
+	reg, err = regexp.Compile(rule.Value)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s: %q", types.ErrInvalidRegexp, rule.Name, rule.Value)
 	}
 
 	return &Rewrite{
 		rule:            &rule,
-		ruleValueRegexp: re,
+		ruleValueRegexp: reg,
 	}, nil
 }
 

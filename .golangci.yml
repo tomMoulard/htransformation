@@ -4,8 +4,7 @@ run:
 linters:
   enable-all: true
   disable:
-    - exportloopref # deprecated
-    - varnamelen # useless
+    - tenv # deprecated
     - ireturn # Not relevant
 
 issues:
@@ -25,8 +24,14 @@ linters-settings:
         deny:
           - pkg: "github.com/instana/testify"
             desc: not allowed
+
   tagliatelle:
     case:
       use-field-name: true
       rules:
         yaml: goPascal
+
+  varnamelen:
+    ignore-decls:
+      - rw http.ResponseWriter
+      - rw *httptest.ResponseRecorder
