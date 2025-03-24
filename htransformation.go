@@ -54,19 +54,19 @@ func New(_ context.Context, next http.Handler, config *Config, name string) (htt
 			return nil, fmt.Errorf("%w: %s", types.ErrInvalidRuleType, rule.Name)
 		}
 
-		h, err := newHandler(rule)
+		handler, err := newHandler(rule)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %s", err, rule.Name)
 		}
 
-		if err := h.Validate(); err != nil {
+		if err := handler.Validate(); err != nil {
 			return nil, fmt.Errorf("%w: %s", err, rule.Name)
 		}
 
 		if rule.SetOnResponse {
-			respHandlers = append(respHandlers, h)
+			respHandlers = append(respHandlers, handler)
 		} else {
-			reqHandlers = append(reqHandlers, h)
+			reqHandlers = append(reqHandlers, handler)
 		}
 	}
 

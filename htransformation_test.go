@@ -1,7 +1,6 @@
 package htransformation_test
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -99,7 +98,7 @@ func TestValidation(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := plug.New(context.Background(), nil, test.config, "test")
+			_, err := plug.New(t.Context(), nil, test.config, "test")
 			if test.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -164,15 +163,14 @@ func TestHeaderRules(t *testing.T) {
 			cfg := plug.CreateConfig()
 			cfg.Rules = []types.Rule{test.rule}
 
-			ctx := context.Background()
 			next := http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})
 
-			handler, err := plug.New(ctx, next, cfg, "demo-plugin")
+			handler, err := plug.New(t.Context(), next, cfg, "demo-plugin")
 			require.NoError(t, err)
 
 			recorder := httptest.NewRecorder()
 
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://localhost", nil)
 			require.NoError(t, err)
 
 			for key, value := range test.additionalHeader {
@@ -239,18 +237,17 @@ func TestSetOnResponse(t *testing.T) {
 			cfg := plug.CreateConfig()
 			cfg.Rules = []types.Rule{test.rule}
 
-			ctx := context.Background()
 			next := http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
 				rw.Header().Add(test.headerName, test.headerValue)
 				rw.WriteHeader(http.StatusOK)
 			})
 
-			handler, err := plug.New(ctx, next, cfg, "demo-plugin")
+			handler, err := plug.New(t.Context(), next, cfg, "demo-plugin")
 			require.NoError(t, err)
 
 			recorder := httptest.NewRecorder()
 
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://localhost", nil)
 			require.NoError(t, err)
 
 			handler.ServeHTTP(recorder, req)

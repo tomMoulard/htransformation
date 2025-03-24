@@ -1,20 +1,20 @@
-.PHONY: default ci lint test yaegi_test vendor clean generate tidy spell inst vulncheck build
+.PHONY: default ci lint test yaegi_test vendor clean generate tidy spell vulncheck build
 
 export GO111MODULE=on
 
 default: spell lint build test
 
-ci: inst tidy generate default vulncheck
+ci: tidy generate default vulncheck
 
 lint:
-	goreleaser check
-	golangci-lint run
+	go tool goreleaser check
+	go tool golangci-lint run
 
 test:
 	go test -race -cover ./...
 
 yaegi_test:
-	yaegi test .
+	go tool yaegi test .
 
 vendor:
 	go mod vendor
@@ -27,17 +27,13 @@ generate:
 
 tidy:
 	go mod tidy
-	cd tools && go mod tidy
 
 spell:
-	misspell -error -locale=US -w **.md
-
-inst:
-	cd tools && go install $(shell cd tools && go list -e -f '{{ join .Imports " " }}' -tags=tools)
+	go tool misspell -error -locale=US -w **.md
 
 vulncheck:
-	govulncheck ./...
+	go tool govulncheck ./...
 
 build:
-	goreleaser build --clean --single-target --snapshot
+	go tool goreleaser build --clean --single-target --snapshot
 
