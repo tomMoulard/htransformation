@@ -146,6 +146,7 @@ func TestRewriteHandler(t *testing.T) {
 				if test.name == "multiple replacements in single header value" {
 					t.Logf("DEBUG: actual header value: %q", actual)
 				}
+
 				assert.Equal(t, hVal, actual)
 			}
 
