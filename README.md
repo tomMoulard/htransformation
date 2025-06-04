@@ -160,12 +160,13 @@ CF-Connecting-IP: 2.2.2.2
 
 ### RewriteValue Rule
 
-A RewriteValue Rule will replace the values of the headers identified by a matching regex with the provided value.
+A RewriteValue Rule will replace **all instances** of the matching pattern in the values of the headers identified by a matching regex with the provided value. This works for multiple matches within a single header value (e.g., values separated by semicolons).
 
 It needs 2 arguments
 
 - `Header`, the header or regex identifying the headers you want to change
-- `Value`, the new value of the headers
+- `Value`, the regex pattern to match in the header value
+- `ValueReplace`, the replacement value (can use capture groups like `$1`)
 
 ```yaml
 # Example RewriteValueRule
@@ -183,6 +184,26 @@ Foo: X-Test
 
 # Modified header:
 Foo: Y-Test
+```
+
+#### Multiple matches in a single header value
+
+```yaml
+# Example RewriteValueRule with multiple matches
+- Rule:
+      Name: 'Header rewriteValue multiple'
+      Header: 'Foo'
+      Value: 'X-(\\d+)-(\\w+)'
+      ValueReplace: 'Y-$2-$1'
+      Type: 'RewriteValueRule'
+```
+
+```yaml
+# Old header:
+Foo: X-12-Test;X-34-Prod
+
+# Modified header:
+Foo: Y-Test-12;Y-Prod-34
 ```
 
 ### Careful
