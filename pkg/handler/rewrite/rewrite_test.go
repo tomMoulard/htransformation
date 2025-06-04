@@ -108,6 +108,21 @@ func TestRewriteHandler(t *testing.T) {
 			},
 			expectedHost: "example.org",
 		},
+		{
+			name: "multiple replacements in single header value",
+			rule: types.Rule{
+				Header:       "Foo",
+				Value:        "X-(\\d+)-(\\w+)",
+				ValueReplace: "Y-$2-$1",
+			},
+			requestHeaders: map[string]string{
+				"Foo": "X-12-Test;X-34-Prod",
+			},
+			expectedHeaders: map[string]string{
+				"Foo": "Y-Test-12;Y-Prod-34",
+			},
+			expectedHost: "example.com",
+		},
 	}
 
 	for _, test := range tests {
@@ -127,7 +142,11 @@ func TestRewriteHandler(t *testing.T) {
 			rewriteHandler.Handle(nil, req)
 
 			for hName, hVal := range test.expectedHeaders {
-				assert.Equal(t, hVal, req.Header.Get(hName))
+				actual := req.Header.Get(hName)
+				if test.name == "multiple replacements in single header value" {
+					t.Logf("DEBUG: actual header value: %q", actual)
+				}
+				assert.Equal(t, hVal, actual)
 			}
 
 			assert.Equal(t, test.expectedHost, req.Host)
