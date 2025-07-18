@@ -43,26 +43,20 @@ func (r *Rewrite) Validate() error {
 }
 
 func (r *Rewrite) replaceHeaderValue(headerValue string) string {
-	parts := strings.Split(headerValue, ";")
-	for i, part := range parts {
-		part = strings.TrimSpace(part)
-		parts[i] = r.ruleValueRegexp.ReplaceAllStringFunc(part, func(match string) string {
-			captures := r.ruleValueRegexp.FindStringSubmatch(match)
-			if len(captures) == 0 || captures[0] == "" {
-				return match
-			}
+	return r.ruleValueRegexp.ReplaceAllStringFunc(headerValue, func(match string) string {
+		captures := r.ruleValueRegexp.FindStringSubmatch(match)
+		if len(captures) == 0 || captures[0] == "" {
+			return match
+		}
 
-			replaced := r.rule.ValueReplace
+		replaced := r.rule.ValueReplace
 
-			for j, capture := range captures[1:] {
-				replaced = strings.ReplaceAll(replaced, fmt.Sprintf("$%d", j+1), capture)
-			}
+		for j, capture := range captures[1:] {
+			replaced = strings.ReplaceAll(replaced, fmt.Sprintf("$%d", j+1), capture)
+		}
 
-			return replaced
-		})
-	}
-
-	return strings.Join(parts, ";")
+		return replaced
+	})
 }
 
 func (r *Rewrite) Handle(rw http.ResponseWriter, req *http.Request) {
