@@ -123,6 +123,21 @@ func TestRewriteHandler(t *testing.T) {
 			},
 			expectedHost: "example.com",
 		},
+		{
+			name: "multiple replacements with spaces",
+			rule: types.Rule{
+				Header:       "Foo",
+				Value:        "X-(\\d+)-(\\w+)",
+				ValueReplace: "Y-$2-$1",
+			},
+			requestHeaders: map[string]string{
+				"Foo": "X-12-Test; X-34-Prod",
+			},
+			expectedHeaders: map[string]string{
+				"Foo": "Y-Test-12; Y-Prod-34",
+			},
+			expectedHost: "example.com",
+		},
 	}
 
 	for _, test := range tests {
